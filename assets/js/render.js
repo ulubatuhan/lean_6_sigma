@@ -634,88 +634,18 @@ window.Y6S = window.Y6S || {};
       return host;
     },
 
-    /* ---- organizasyon şeması ---- */
+    /* ---- organizasyon şeması (sürükle-bırak) ---- */
     orgchart: function (f, data, changed, ctx) {
-      if (!Array.isArray(data[f.name]) || !data[f.name].length) {
-        data[f.name] = [{ id: Y.uid(), ad: '', unvan: '', parent: '' }];
-      }
-      var nodes = data[f.name];
-      nodes.forEach(function (n) { if (!n.id) n.id = Y.uid(); });
-
-      var wrap = el('div');
-      var list = el('div', { class: 'orgnode-list' });
-      var preview = el('div', { class: 'diagram-preview' });
-
-      function refresh() {
-        var svg = Y.orgchartSVG(nodes.map(function (n) { return { id: n.id, ad: n.ad, unvan: n.unvan, parent: n.parent }; }));
-        preview.innerHTML = svg || '<p class="muted tiny" style="padding:20px;text-align:center;margin:0">Kişi eklendikçe şema burada oluşur.</p>';
-      }
-
-      /** Yönetici listelerindeki isimleri, kutulara yazıldıkça günceller. */
-      function syncOptions() {
-        var byId = {};
-        nodes.forEach(function (n) { byId[n.id] = n; });
-        Array.prototype.slice.call(list.querySelectorAll('.orgnode select')).forEach(function (sel) {
-          Array.prototype.slice.call(sel.options).forEach(function (o) {
-            var t = o.value && byId[o.value];
-            if (t) o.textContent = t.ad || t.unvan || 'İsimsiz';
-          });
-        });
-      }
-
-      function paint() {
-        list.innerHTML = '';
-        nodes.forEach(function (n, i) {
-          var row = el('div', { class: 'orgnode' });
-          var ad = el('input', { class: 'ctl', type: 'text', placeholder: 'Ad Soyad' });
-          ad.value = n.ad || '';
-          ad.addEventListener('input', function () { n.ad = ad.value; changed(); syncOptions(); refresh(); });
-
-          var un = el('input', { class: 'ctl', type: 'text', placeholder: 'Ünvan / Görev' });
-          un.value = n.unvan || '';
-          un.addEventListener('input', function () { n.unvan = un.value; changed(); syncOptions(); refresh(); });
-
-          var par = el('select', { class: 'ctl' });
-          par.appendChild(el('option', { value: '', text: '— en üst —' }));
-          nodes.forEach(function (o) {
-            if (o.id === n.id) return;
-            par.appendChild(el('option', { value: o.id, text: (o.ad || o.unvan || 'İsimsiz') }));
-          });
-          par.value = n.parent || '';
-          par.addEventListener('change', function () { n.parent = par.value; changed(); refresh(); });
-
-          var del = el('button', { class: 'rowdel', type: 'button', title: 'Kişiyi sil', 'aria-label': 'Kişiyi sil', html: Y.ui('trash') });
-          del.addEventListener('click', function () {
-            var gone = nodes[i].id;
-            nodes.splice(i, 1);
-            nodes.forEach(function (o) { if (o.parent === gone) o.parent = ''; });
-            paint(); changed(); refresh();
-          });
-
-          row.appendChild(ad); row.appendChild(un); row.appendChild(par); row.appendChild(del);
-          list.appendChild(row);
-        });
-      }
-
-      var acts = el('div', { class: 'tbl-actions' });
-      var add = el('button', { class: 'btn btn-sm', type: 'button', html: Y.ui('plus') + '<span>Kişi ekle</span>' });
-      add.addEventListener('click', function () {
-        var last = nodes[nodes.length - 1];
-        nodes.push({ id: Y.uid(), ad: '', unvan: '', parent: last ? (last.parent || '') : '' });
-        paint(); changed(); refresh();
-        var inputs = list.querySelectorAll('.orgnode input');
-        if (inputs.length) inputs[inputs.length - 2].focus();
-      });
-      acts.appendChild(add);
-      acts.appendChild(el('span', { class: 'muted tiny', text: 'Bağlı olduğu yöneticiyi seçerek hiyerarşiyi kurun.' }));
-
-      wrap.appendChild(list);
-      wrap.appendChild(acts);
-      wrap.appendChild(el('div', { class: 'diagram-label', text: 'Şema önizleme' }));
-      wrap.appendChild(preview);
-      paint(); refresh();
-      ctx.onRefresh(refresh);
-      return wrap;
+      var nodes = Y.normOrgchart(data[f.name]);
+      data[f.name] = nodes;
+      var host = el('div');
+      var api = Y.mountOrgchartEditor(
+        host,
+        function () { return nodes; },
+        function (next) { data[f.name] = nodes = next; changed(); }
+      );
+      ctx.onRefresh(function () { api.refresh(); });
+      return host;
     },
 
     table: function (f, data, changed) {

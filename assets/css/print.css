@@ -151,6 +151,11 @@ table.p-tbl tbody tr:nth-child(even) td { background: var(--p-zebra); }
 table.p-tbl td.n { text-align: center; color: var(--p-soft); }
 table.p-tbl td.d { white-space: nowrap; }
 
+table.p-strat { table-layout: auto; font-size: 7.2pt; }
+table.p-strat th.p-strat-col { text-align: center; width: 9mm; white-space: normal; }
+table.p-strat td.p-strat-mark { text-align: center; font-weight: 700; }
+table.p-strat td.p-strat-grup { font-weight: 700; }
+
 /* ---------- Öncesi / sonrası ---------- */
 
 .p-pair { display: flex; gap: 4mm; }

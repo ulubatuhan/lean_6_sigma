@@ -510,6 +510,26 @@ table.etbl td.rowact { width: 38px; text-align: center; padding: 4px; background
 .rowdel svg { width: 15px; height: 15px; }
 .tbl-actions { display: flex; gap: 8px; margin-top: 9px; align-items: center; flex-wrap: wrap; }
 
+/* ---------- Stratejik Hedef-Süreç Matrisi ---------- */
+
+.sm-wrap { max-height: 72vh; overflow: auto; }
+table.sm-tbl { min-width: 900px; }
+table.sm-tbl th { position: sticky; top: 0; z-index: 2; vertical-align: bottom; white-space: normal; }
+table.sm-tbl td.sm-grup, table.sm-tbl td.sm-ust, table.sm-tbl td.sm-alt {
+  padding: 7px 10px; font-size: 13px; vertical-align: middle;
+  border-right: 1px solid var(--border); background: var(--bg-elev);
+}
+table.sm-tbl td.sm-grup { font-weight: 700; background: var(--bg-sunken); position: sticky; left: 0; z-index: 1; }
+table.sm-tbl td.sm-ust { font-weight: 600; color: var(--text-soft); }
+.sm-colhead-top { display: flex; align-items: center; gap: 4px; }
+.sm-persp {
+  flex: none; width: 22px; height: 22px; border-radius: 5px; border: none;
+  color: #fff; font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.sm-code { width: 84px; min-width: 0; text-transform: none; letter-spacing: 0; font-weight: 600; }
+table.sm-tbl td.sm-mark { text-align: center; padding: 7px 4px; }
+table.sm-tbl td.sm-mark input { width: 17px; height: 17px; cursor: pointer; }
+
 /* ---------- Öncesi / Sonrası ---------- */
 
 .pairgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -672,6 +692,7 @@ table.etbl td input.calc {
 .fm-node:hover .fm-port, .fm-node.is-sel .fm-port { opacity: 1; }
 .fm-edge-hit { cursor: pointer; }
 .fm-lane-head { cursor: pointer; }
+.fm-lane-resize { cursor: ns-resize; }
 
 .fm-lanes-panel, .fm-props {
   border: 1px solid var(--border); border-radius: var(--r-sm);
@@ -693,6 +714,9 @@ table.etbl td input.calc {
   font-size: 11.5px; font-weight: 700;
 }
 .fm-lane-row .rowdel[disabled] { opacity: .3; cursor: not-allowed; }
+.fm-lane-row-head { padding: 0 5px; }
+.fm-lane-row-head .fm-lane-h-lab { width: 74px; flex: none; text-align: center; }
+.fm-lane-h { width: 74px; flex: none; text-align: center; padding: 6px 4px; }
 
 .fm-props-empty { font-size: 13.5px; color: var(--text-faint); padding: 6px 2px; }
 .fm-props-path { font-size: 13px; color: var(--text-soft); margin-bottom: 10px; }

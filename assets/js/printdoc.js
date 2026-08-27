@@ -183,12 +183,53 @@ window.Y6S = window.Y6S || {};
         '<td>' + E(laneAd[n.lane] || '') + '</td>' +
         '<td>' + E(n.tur || '') + '</td>' +
         '<td class="d">' + (String(n.sure || '').trim() ? E(n.sure) + ' dk' : '') + '</td>' +
-        '<td>' + E(n.kd || '') + '</td>' +
+        '<td>' + E(n.kd || '') + (n.kd === 'İsraf' && String(n.israfTuru || '').trim() ? ' — ' + E(n.israfTuru) : '') + '</td>' +
         '<td class="d">' + cnxBadge(n.cnx) + '</td>' +
         '<td>' + (outs.length ? E(outs.join(' · ')) : 'Süreç sonu') + '</td></tr>';
     });
     h += '</tbody></table>';
     return h;
+  }
+
+  function stratmatrixBlock(f, data) {
+    var v = data[f.name];
+    if (!v || !Array.isArray(v.cols) || !v.cols.length) {
+      return '<div class="p-field"><div class="val empty">Henüz sütun eklenmemiş.</div></div>';
+    }
+    var perspOf = {};
+    (Y.STRAT_PERSPEKTIF || []).forEach(function (p) { perspOf[p.key] = p; });
+
+    var h = '<table class="p-tbl p-strat"><thead><tr>' +
+      '<th>Ana Grup</th><th>Üst Süreç</th><th>Alt Süreç</th>';
+    v.cols.forEach(function (col) {
+      var p = perspOf[col.persp] || { color: '#8a94a6' };
+      h += '<th class="p-strat-col" style="border-top:3px solid ' + p.color + '">' + E(col.code || '—') + '</th>';
+    });
+    h += '</tr></thead><tbody>';
+
+    (Y.STRAT_HIYERARSI || []).forEach(function (grp, gi) {
+      var grupAd = grp[0], ustAd = grp[1], altList = grp[2];
+      altList.forEach(function (alt, ai) {
+        var leaf = 'g' + gi + '_a' + ai;
+        h += '<tr>';
+        if (ai === 0) {
+          var isFirstOfGroup = gi === 0 || Y.STRAT_HIYERARSI[gi - 1][0] !== grupAd;
+          if (isFirstOfGroup) {
+            var span = 0;
+            for (var k = gi; k < Y.STRAT_HIYERARSI.length && Y.STRAT_HIYERARSI[k][0] === grupAd; k++) span += Y.STRAT_HIYERARSI[k][2].length;
+            h += '<td rowspan="' + span + '" class="p-strat-grup">' + E(grupAd) + '</td>';
+          }
+          h += '<td rowspan="' + altList.length + '">' + E(ustAd) + '</td>';
+        }
+        h += '<td>' + E(alt) + '</td>';
+        v.cols.forEach(function (col) {
+          var on = !!(v.marks && v.marks[leaf] && v.marks[leaf][col.id]);
+          h += '<td class="p-strat-mark">' + (on ? '×' : '') + '</td>';
+        });
+        h += '</tr>';
+      });
+    });
+    return h + '</tbody></table>';
   }
 
   function orgBlock(f, data) {
@@ -233,6 +274,7 @@ window.Y6S = window.Y6S || {};
         case 'sipoc':    h += sipocBlock(f, data); break;
         case 'flowmap':  h += flowmapBlock(f, data); break;
         case 'orgchart': h += orgBlock(f, data); break;
+        case 'stratmatrix': h += stratmatrixBlock(f, data); break;
         case 'checks':   h += checksBlock(f, data); break;
         default:         h += fieldBlock(f, data);
       }

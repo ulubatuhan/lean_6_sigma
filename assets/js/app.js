@@ -193,7 +193,7 @@
       body: body,
       actions: [
         { label: 'Tümünü sil', class: 'btn-danger', icon: 'trash', onClick: function () {
-          Y.confirm('Tüm kayıtları sil', 'Bu tarayıcıdaki tüm Lean 6 Sigma kayıtları silinecek. Bu işlem geri alınamaz.', 'Hepsini sil', function () {
+          Y.confirm('Tüm kayıtları sil', 'Bu tarayıcıdaki tüm Yalın 6 Sigma kayıtları silinecek. Bu işlem geri alınamaz.', 'Hepsini sil', function () {
             Y.Store.clearAll(); paint(); paintRecents(); Y.toast('Tüm kayıtlar silindi.');
           });
           return false;

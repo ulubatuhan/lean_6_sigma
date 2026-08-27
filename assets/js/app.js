@@ -10,6 +10,9 @@
   Y.initTheme();
   Y.mountThemeButton(document.getElementById('theme-slot'));
 
+  var logo = document.getElementById('brand-logo');
+  if (logo && Y.BRAND) logo.src = Y.BRAND.logo;
+
   var storageOK = Y.Store.available();
 
   /* ---------------------------------------------------------------- seçici */
@@ -30,7 +33,7 @@
     if (!t) { desc.textContent = ''; return; }
     desc.innerHTML = '<strong>' + Y.esc(t.name) + '</strong> — ' + Y.esc(t.desc) +
       ' <span class="pill pill-' + t.phase + '" style="margin-left:6px">' + Y.esc(Y.PHASES[t.phase].label) + '</span>' +
-      ' <span class="pill">' + Y.esc(t.code) + '</span>' +
+      (t.code ? ' <span class="pill">' + Y.esc(t.code) + '</span>' : '') +
       ' <span class="pill">' + (t.orientation === 'landscape' ? 'A4 Yatay' : 'A4 Dikey') + '</span>';
   }
 
@@ -80,7 +83,8 @@
       a.appendChild(el('p', { text: t.desc }));
       a.appendChild(el('div', { class: 'tcard-foot' }, [
         el('span', { class: 'pill pill-' + t.phase, text: Y.PHASES[t.phase].label }),
-        el('span', { class: 'pill', text: t.code })
+        t.code ? el('span', { class: 'pill', text: t.code })
+               : el('span', { class: 'pill pill-soft', text: 'Kurum içi araç' })
       ]));
       grid.appendChild(a);
     });

@@ -270,19 +270,43 @@ window.Y6S = window.Y6S || {};
    * @param {object} opts {title, code}
    * @returns {HTMLElement} .pdoc-stage kökü
    */
+  /**
+   * Resmî YEPAŞ form başlığı: logo | form adı | doküman künyesi.
+   * Kurumsal formların (SYB-F-xxxx) üst tablosuyla birebir aynı düzendedir.
+   */
+  function officialHead(tpl, subtitle) {
+    var logo = (Y.BRAND && Y.BRAND.logo) || '';
+    var rows = [
+      ['DOKÜMAN NO', tpl.code || '—'],
+      ['YAYIN TARİHİ', tpl.yayinTarihi || '—'],
+      ['REVİZYON NO', tpl.revNo != null ? tpl.revNo : '—'],
+      ['REVİZYON TARİHİ', tpl.revTarihi || '—']
+    ];
+    var künye = rows.map(function (r) {
+      return '<tr><th>' + E(r[0]) + '</th><td>' + E(r[1]) + '</td></tr>';
+    }).join('');
+
+    return '<table class="p-official"><tr>' +
+      '<td class="po-logo">' +
+        (logo ? '<img src="' + logo + '" alt="YEPAŞ">' : '<b>YEPAŞ</b>') +
+      '</td>' +
+      '<td class="po-title">' +
+        '<div class="t1">' + E(tpl.resmiAd || tpl.name) + '</div>' +
+        (subtitle ? '<div class="t2">' + E(subtitle) + '</div>' : '') +
+      '</td>' +
+      '<td class="po-meta"><table>' + künye + '</table></td>' +
+      '</tr></table>' +
+      (tpl.resmi === false
+        ? '<div class="p-unofficial">Kurum içi çalışma aracı — resmî doküman numarası bulunmamaktadır.</div>'
+        : '');
+  }
+
   Y.buildPrintDoc = function (tpl, data, opts) {
     opts = opts || {};
     var effect = data.etki || data.problem || data.baslik || data.proje || opts.title || '';
     var subtitle = (opts.title && opts.title !== tpl.name) ? opts.title : '';
 
-    var h = '';
-    h += '<div class="p-head">' +
-      '<div class="p-head-brand"><div class="b1">YEPAS</div><div class="b2">Lean 6 Sigma</div></div>' +
-      '<div class="p-head-title"><div class="t1">' + E(tpl.name) + '</div>' +
-      '<div class="t2">' + E(subtitle) + '</div></div>' +
-      '<div class="p-head-code"><span>Form Kodu</span><b>' + E(tpl.code || '—') + '</b>' +
-      '<span style="margin-top:1mm">Çıktı Tarihi</span><b>' + Y.fmtDate(Y.todayISO()) + '</b></div>' +
-      '</div>';
+    var h = officialHead(tpl, subtitle);
 
     h += metaTable(tpl, data);
 
@@ -299,8 +323,10 @@ window.Y6S = window.Y6S || {};
       h += secs.join('');
     }
 
-    h += '<div class="p-foot"><span>Yepas Lean 6 Sigma · ' + E(tpl.name) + ' (' + E(tpl.code || '') + ')</span>' +
-      '<span>' + E(subtitle) + '</span></div>';
+    h += '<div class="p-foot">' +
+      '<span>' + E(tpl.resmiAd || tpl.name) + (tpl.code ? ' · ' + E(tpl.code) : '') + '</span>' +
+      '<span>' + E(subtitle) + '</span>' +
+      '<span>Çıktı tarihi: ' + Y.fmtDate(Y.todayISO()) + '</span></div>';
 
     var doc = Y.el('div', { class: 'pdoc' + (tpl.orientation === 'landscape' ? ' landscape' : ''), html: h });
     var stage = Y.el('div', { class: 'pdoc-stage' }, [doc]);

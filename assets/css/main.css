@@ -1,63 +1,99 @@
 /* ==========================================================================
    Yepas Lean 6 Sigma — temel stiller
+   Renk paleti Dijital YEPAŞ portalı ve kurumsal form logosundan alınmıştır.
    ========================================================================== */
 
 :root {
-  --bg:            #f4f6f9;
-  --bg-elev:       #ffffff;
-  --bg-sunken:     #eceff4;
-  --bg-input:      #ffffff;
-  --border:        #d8dee7;
-  --border-strong: #bcc6d4;
-  --text:          #16202e;
-  --text-soft:     #55637a;
-  --text-faint:    #838fa3;
-  --brand:         #0e4d64;
-  --brand-2:       #14708f;
-  --brand-ink:     #ffffff;
-  --accent:        #d98324;
-  --accent-soft:   #fdf3e6;
-  --ok:            #1c7c54;
-  --ok-soft:       #e7f4ee;
-  --warn:          #b4690e;
-  --danger:        #b3261e;
-  --danger-soft:   #fdeceb;
-  --ring:          rgba(20, 112, 143, .35);
-  --shadow-sm:     0 1px 2px rgba(16, 30, 54, .06), 0 1px 3px rgba(16, 30, 54, .05);
-  --shadow-md:     0 2px 4px rgba(16, 30, 54, .05), 0 8px 24px rgba(16, 30, 54, .08);
-  --shadow-lg:     0 12px 48px rgba(16, 30, 54, .16);
+  /* --- Zemin --- */
+  --bg:            #EEF2EE;
+  --bg-elev:       #FFFFFF;
+  --bg-sunken:     #E2E8E2;
+  --bg-input:      #F5F8F5;
+
+  /* --- Kenarlık --- */
+  --border:        #D4DCD4;
+  --border-strong: #B0BDB0;
+
+  /* --- Metin --- */
+  --text:          #1A1F1A;
+  --text-soft:     #4A554A;
+  --text-faint:    #7A867A;
+
+  /* --- Kurumsal kimlik ---
+     Logo: lacivert #142E51, yeşil #026A39, sarı #F7B449, kırmızı #E7242A.
+     Birincil aksiyon rengi Dijital YEPAŞ portalıyla aynı yeşildir. */
+  --brand:         #2E7D32;
+  --brand-2:       #236B27;
+  --brand-ink:     #FFFFFF;
+  --brand-soft:    #E8F5E9;
+  --navy:          #142E51;
+
+  /* --- Vurgu --- */
+  --accent:        #F7B449;
+  --accent-soft:   #FEF3C7;
+
+  /* --- Durum --- */
+  --ok:            #2E7D32;
+  --ok-soft:       #E8F5E9;
+  --warn:          #B8860B;
+  --danger:        #E7242A;
+  --danger-soft:   #FEF2F2;
+  --info:          #2563EB;
+  --info-soft:     #EFF6FF;
+
+  /* --- C, N, X sınıflandırması (SGB-F-0650) --- */
+  --cnx-c:         #026A39;
+  --cnx-n:         #F7B449;
+  --cnx-x:         #E7242A;
+
+  /* --- Efektler --- */
+  --ring:          rgba(46, 125, 50, .28);
+  --shadow-sm:     0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+  --shadow-md:     0 4px 12px rgba(0, 0, 0, .07);
+  --shadow-lg:     0 8px 30px rgba(0, 0, 0, .10);
+
+  /* --- Ölçüler --- */
   --r-sm: 6px;
   --r-md: 10px;
-  --r-lg: 16px;
+  --r-lg: 14px;
   --maxw: 1180px;
-  --font: "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+  /* --- Tipografi --- */
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
 html[data-theme="dark"] {
-  --bg:            #101620;
-  --bg-elev:       #18202c;
-  --bg-sunken:     #0b1119;
-  --bg-input:      #131b26;
-  --border:        #2a3646;
-  --border-strong: #3b4a5e;
-  --text:          #e6ecf4;
-  --text-soft:     #a3b1c4;
-  --text-faint:    #7c8ba0;
-  --brand:         #4fb3d1;
-  --brand-2:       #6cc7e2;
-  --brand-ink:     #08222c;
-  --accent:        #eca34b;
-  --accent-soft:   #2a2113;
-  --ok:            #4cc38a;
-  --ok-soft:       #11251c;
-  --warn:          #e0a458;
-  --danger:        #f28b82;
-  --danger-soft:   #2a1614;
-  --ring:          rgba(79, 179, 209, .40);
-  --shadow-sm:     0 1px 2px rgba(0, 0, 0, .4);
-  --shadow-md:     0 2px 4px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .35);
-  --shadow-lg:     0 12px 48px rgba(0, 0, 0, .55);
+  --bg:            #131A13;
+  --bg-elev:       #1E271E;
+  --bg-sunken:     #1A231A;
+  --bg-input:      #222D22;
+  --border:        #2E3E2E;
+  --border-strong: #3A4E3A;
+  --text:          #E8EDE8;
+  --text-soft:     #B0BDB0;
+  --text-faint:    #7A8C7A;
+  --brand:         #4CAF50;
+  --brand-2:       #66BB6A;
+  --brand-ink:     #0C1A0C;
+  --brand-soft:    rgba(76, 175, 80, .12);
+  --navy:          #8FB2E0;
+  --accent:        #FBBF24;
+  --accent-soft:   rgba(251, 191, 36, .12);
+  --ok:            #4CAF50;
+  --ok-soft:       rgba(76, 175, 80, .12);
+  --warn:          #FBBF24;
+  --danger:        #EF4444;
+  --danger-soft:   rgba(239, 68, 68, .12);
+  --info:          #60A5FA;
+  --info-soft:     rgba(96, 165, 250, .12);
+  --cnx-c:         #4CAF50;
+  --cnx-n:         #FBBF24;
+  --cnx-x:         #EF4444;
+  --ring:          rgba(76, 175, 80, .35);
+  --shadow-sm:     0 1px 3px rgba(0, 0, 0, .2);
+  --shadow-md:     0 4px 12px rgba(0, 0, 0, .3);
+  --shadow-lg:     0 8px 30px rgba(0, 0, 0, .4);
 }
 
 * { box-sizing: border-box; }
@@ -89,6 +125,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .topbar {
   position: sticky; top: 0; z-index: 40;
+  padding-top: 3px;
   background: color-mix(in srgb, var(--bg-elev) 88%, transparent);
   backdrop-filter: saturate(1.4) blur(10px);
   border-bottom: 1px solid var(--border);
@@ -97,10 +134,22 @@ button, input, select, textarea { font: inherit; color: inherit; }
   display: flex; align-items: center; gap: 14px;
   height: 60px;
 }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
-.brand-mark { width: 30px; height: 30px; flex: none; }
-.brand-name { font-weight: 750; letter-spacing: .01em; font-size: 15px; }
-.brand-name span { color: var(--text-faint); font-weight: 500; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+.brand-mark { height: 32px; width: auto; flex: none; display: block; }
+html[data-theme="dark"] .brand-mark {
+  background: #fff; border-radius: 4px; padding: 2px 4px;
+}
+.brand-name {
+  font-weight: 600; font-size: 14px; color: var(--text-soft);
+  padding-left: 12px; border-left: 1px solid var(--border);
+  letter-spacing: .01em;
+}
+
+/* Portaldaki üst aksan şeridi */
+.topbar::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--brand), #43A047, var(--brand), transparent);
+}
 .topbar-spacer { flex: 1; }
 
 /* ---------- Butonlar ---------- */
@@ -288,10 +337,14 @@ textarea.ctl { resize: vertical; min-height: 76px; line-height: 1.5; }
   border: 1px solid var(--border);
   background: var(--bg-sunken); color: var(--text-soft);
 }
+.pill-soft {
+  background: transparent; border-style: dashed;
+  color: var(--text-faint); font-weight: 500;
+}
 .pill-D { color: #0b6ea8; background: #e6f2fa; border-color: #bcdcf0; }
 .pill-M { color: #7a4bbd; background: #f1eafc; border-color: #ddcdf5; }
-.pill-A { color: #b3261e; background: var(--danger-soft); border-color: #f5cfcc; }
-.pill-I { color: #1c7c54; background: var(--ok-soft); border-color: #c6e6d7; }
+.pill-A { color: #E7242A; background: var(--danger-soft); border-color: #f5cfcc; }
+.pill-I { color: #026A39; background: var(--ok-soft); border-color: #c6e6d7; }
 .pill-C { color: #8a5a00; background: var(--accent-soft); border-color: #f3ddba; }
 html[data-theme="dark"] .pill-D { color: #7cc3ec; background: #10293a; border-color: #1d4359; }
 html[data-theme="dark"] .pill-M { color: #c3a6f0; background: #241a38; border-color: #3b2c58; }
@@ -611,9 +664,9 @@ table.etbl td input.calc {
 
 .fm-node { cursor: grab; }
 .fm-node:active { cursor: grabbing; }
-.fm-node.is-target > :first-child { stroke: #1c7c54 !important; stroke-width: 3 !important; }
+.fm-node.is-target > :first-child { stroke: #026A39 !important; stroke-width: 3 !important; }
 .fm-port {
-  fill: #ffffff; stroke: #14708f; stroke-width: 1.6;
+  fill: #ffffff; stroke: #2E7D32; stroke-width: 1.6;
   opacity: 0; cursor: crosshair; transition: opacity .12s;
 }
 .fm-node:hover .fm-port, .fm-node.is-sel .fm-port { opacity: 1; }

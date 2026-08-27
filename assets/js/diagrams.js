@@ -88,7 +88,7 @@ window.Y6S = window.Y6S || {};
     var effLines = wrap(effect || 'Problem / Etki', headW - 24, 14, 4);
     var effH = Math.max(56, effLines.length * 18 + 24);
     s += '<rect x="' + (x1 + 18) + '" y="' + (cy - effH / 2) + '" width="' + (headW - 18) + '" height="' + effH +
-      '" rx="8" fill="#0e4d64"/>';
+      '" rx="8" fill="#142E51"/>';
     s += '<text x="' + (x1 + 18 + (headW - 18) / 2) + '" y="' + (cy - effH / 2 + 22) +
       '" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">' +
       tspans(effLines, x1 + 18 + (headW - 18) / 2, cy - effH / 2 + 22, 17) + '</text>';
@@ -198,7 +198,7 @@ window.Y6S = window.Y6S || {};
     var H = 32 + (maxDepth + 1) * (NH + VG) - VG + 16;
     var s = open(W, H);
 
-    var PAL = ['#0e4d64', '#14708f', '#2b8ca8', '#4aa3bd', '#6fb9cd'];
+    var PAL = ['#142E51', '#2E7D32', '#026A39', '#4A7BA8', '#7FA3C4'];
 
     // Bağlantılar
     nodes.forEach(function (n) {

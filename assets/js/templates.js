@@ -55,44 +55,53 @@ var ONAY = {
   addLabel: 'Satır ekle'
 };
 
+/* SGB-F-0650 Balık Kılçığı (Ishikawa) Diyagramı ana dal sırası. */
 var M6 = [
-  { key: 'insan',    label: 'İnsan (Man)',         color: '#0b6ea8' },
-  { key: 'makine',   label: 'Makine (Machine)',    color: '#7a4bbd' },
-  { key: 'malzeme',  label: 'Malzeme (Material)',  color: '#1c7c54' },
-  { key: 'metot',    label: 'Metot (Method)',      color: '#b3261e' },
-  { key: 'olcum',    label: 'Ölçüm (Measurement)', color: '#b4690e' },
-  { key: 'cevre',    label: 'Çevre (Environment)', color: '#0e7490' }
+  { key: 'insan',    label: 'İNSAN',    color: '#142E51' },
+  { key: 'makine',   label: 'MAKİNE',   color: '#026A39' },
+  { key: 'cevre',    label: 'ÇEVRE',    color: '#0e7490' },
+  { key: 'olcum',    label: 'ÖLÇÜM',    color: '#B8860B' },
+  { key: 'metot',    label: 'YÖNTEM',   color: '#7a4bbd' },
+  { key: 'malzeme',  label: 'MALZEME',  color: '#E7242A' }
 ];
 
 var DURUM_OPT = ['Planlandı', 'Devam Ediyor', 'Tamamlandı', 'İptal'];
 
-/* CNX sınıflandırması: her neden/girdi kontrol durumuna göre etiketlenir. */
-var CNX_OPT = ['C — Kontrol Edilen', 'N — Gürültü (Noise)', 'X — Deneysel / Kritik'];
+/* CNX sınıflandırması — SGB-F-0650 Kök Neden Analiz Formları, NOT-1. */
+var CNX_OPT = ['C — Kontrol edilebilir', 'N — Kontrol edilemez', 'X — Bilinmiyor'];
 
 var CNX_LEGEND = {
   type: 'static', width: 'full',
   html: '<div class="cnx-legend">' +
-    '<span class="cnx-legend-title">CNX Sınıflandırması</span>' +
-    '<span class="cnx-item"><b style="background:#1c7c54">C</b> <strong>Kontrol Edilen</strong> — ' +
-      'prosedür veya talimatla sabitlenir, sürekli aynı tutulur.</span>' +
-    '<span class="cnx-item"><b style="background:#b4690e">N</b> <strong>Gürültü (Noise)</strong> — ' +
-      'kontrol edilemez ya da kontrolü ekonomik değildir; etkisi izlenir.</span>' +
-    '<span class="cnx-item"><b style="background:#b3261e">X</b> <strong>Deneysel / Kritik</strong> — ' +
-      'üzerinde deney yapılacak, optimum değeri aranacak kritik değişken.</span>' +
+    '<span class="cnx-legend-title">NOT-1 · C, N, X</span>' +
+    '<span class="cnx-item"><b style="background:#026A39">C</b> <strong>Kontrol edilebilir</strong> — ' +
+      'prosedür, talimat veya kontrol planı ile sabitlenebilen neden.</span>' +
+    '<span class="cnx-item"><b style="background:#F7B449">N</b> <strong>Kontrol edilemez</strong> — ' +
+      'doğrudan müdahale edilemeyen neden; etkisi izlenir.</span>' +
+    '<span class="cnx-item"><b style="background:#E7242A">X</b> <strong>Bilinmiyor</strong> — ' +
+      'kontrol edilebilirliği belirsiz; araştırma veya deney gerekir.</span>' +
     '</div>'
 };
 
 var CNX_SONUC = {
-  title: 'CNX Sonuçları',
-  hint: 'Sınıflandırmayı aksiyona çevirin: C\'ler standartlaştırılır, N\'ler izlenir, X\'ler üzerinde deney yapılır.',
+  title: 'C, N, X Sonuçları',
+  hint: 'Sınıflandırmayı aksiyona çevirin: C\'ler standartlaştırılır, N\'ler izlenir, X\'ler araştırılır.',
   fields: [
     { name: 'cnx_c', label: 'C — Nasıl sabit tutulacak? (standart, talimat, kontrol planı)',
       type: 'textarea', width: 'third', rows: 3 },
     { name: 'cnx_n', label: 'N — Nasıl izlenecek? (ölçüm, kayıt, uyarı sınırı)',
       type: 'textarea', width: 'third', rows: 3 },
-    { name: 'cnx_x', label: 'X — Hangi deney / iyileştirme yapılacak?',
+    { name: 'cnx_x', label: 'X — Hangi araştırma / deney yapılacak?',
       type: 'textarea', width: 'third', rows: 3 }
   ]
+};
+
+/* SGB-F-0650 NOT-2. */
+var KNA_NOT2 = {
+  type: 'static', width: 'full', print: false,
+  html: '<div class="notice">NOT-2: Probleme ait 5 Neden Analizi\'ni ' +
+    '<strong>Balık Kılçığı Diyagramı</strong> veya <strong>5 Neden Analizi Formu</strong> ' +
+    'kullanarak gerçekleştirebilirsiniz.</div>'
 };
 
 /* ==========================================================================
@@ -106,7 +115,11 @@ Y6S.TEMPLATES = [
   id: 'kaizen-oncesi-sonrasi',
   tags: 'kaizen, once sonra, before after, iyilestirme, gorsel, fotograf',
   name: 'Öncesi / Sonrası Kaizen',
-  code: 'FR-KZN-01',
+  code: 'SYB-F-0361',
+  resmiAd: 'Öncesi-Sonrası Kaizen Formu',
+  yayinTarihi: '1.07.2022',
+  revNo: '1',
+  revTarihi: '12.11.2025',
   icon: 'swap',
   phase: 'I',
   orientation: 'portrait',
@@ -176,7 +189,8 @@ Y6S.TEMPLATES = [
   id: 'proses-haritasi',
   tags: 'proses, surec, akis, flowchart, akis semasi, swimlane, kulvar, harita, is akisi',
   name: 'Proses Haritası',
-  code: 'FR-PRS-01',
+  code: '',
+  resmi: false,
   icon: 'flow',
   phase: 'M',
   orientation: 'landscape',
@@ -216,7 +230,11 @@ Y6S.TEMPLATES = [
   id: 'beyin-firtinasi',
   tags: 'beyin firtinasi, brainstorming, fikir, oneri, toplanti',
   name: 'Beyin Fırtınası Formu',
-  code: 'FR-BYF-01',
+  code: 'SGB-F-0648',
+  resmiAd: 'Beyin Fırtınası Formu',
+  yayinTarihi: '11.04.2025',
+  revNo: '0',
+  revTarihi: '11.04.2025',
   icon: 'bulb',
   phase: 'D',
   orientation: 'portrait',
@@ -285,7 +303,11 @@ Y6S.TEMPLATES = [
   id: 'kok-neden-analizi',
   tags: 'kok neden, root cause, rca, dof, duzeltici faaliyet, cnx, 8d',
   name: 'Kök Neden Analizi Formu',
-  code: 'FR-KNA-01',
+  code: 'SGB-F-0650',
+  resmiAd: 'Kök Neden Analiz Formları',
+  yayinTarihi: '17.04.2025',
+  revNo: '0',
+  revTarihi: '17.04.2025',
   icon: 'root',
   phase: 'A',
   orientation: 'portrait',
@@ -363,7 +385,11 @@ Y6S.TEMPLATES = [
   id: 'sipoc',
   tags: 'sipoc, tedarikci girdi surec cikti musteri, ctq, kapsam',
   name: 'SIPOC Diyagramı',
-  code: 'FR-SPC-01',
+  code: 'SGB-F-0658',
+  resmiAd: 'SIPOC Diyagramı',
+  yayinTarihi: '23.05.2025',
+  revNo: '0',
+  revTarihi: '23.05.2025',
   icon: 'sipoc',
   phase: 'D',
   orientation: 'landscape',
@@ -414,7 +440,11 @@ Y6S.TEMPLATES = [
   id: 'bes-neden',
   tags: '5 neden, bes neden, 5 why, five why, kok neden, cnx',
   name: '5 Neden Analizi',
-  code: 'FR-5N-01',
+  code: 'SGB-F-0650',
+  resmiAd: 'Kök Neden Analiz Formları',
+  yayinTarihi: '17.04.2025',
+  revNo: '0',
+  revTarihi: '17.04.2025',
   icon: 'why',
   phase: 'A',
   orientation: 'portrait',
@@ -458,7 +488,11 @@ Y6S.TEMPLATES = [
   id: 'balik-kilcigi',
   tags: 'balik kilcigi, kilcik, ishikawa, sebep sonuc, fishbone, 6m, cnx',
   name: 'Balık Kılçığı (Ishikawa)',
-  code: 'FR-ISK-01',
+  code: 'SGB-F-0650',
+  resmiAd: 'Kök Neden Analiz Formları',
+  yayinTarihi: '17.04.2025',
+  revNo: '0',
+  revTarihi: '17.04.2025',
   icon: 'fish',
   phase: 'A',
   orientation: 'landscape',
@@ -509,7 +543,11 @@ Y6S.TEMPLATES = [
   id: 'is-analiz-formu',
   tags: 'is analizi, gorev tanimi, pozisyon, yetkinlik, is tanimi',
   name: 'İş Analiz Formu',
-  code: 'FR-IAF-01',
+  code: 'SYB-F-0363',
+  resmiAd: 'İş Analiz Formu',
+  yayinTarihi: '1.07.2022',
+  revNo: '0',
+  revTarihi: '1.07.2022',
   icon: 'clip',
   phase: 'M',
   orientation: 'portrait',
@@ -593,7 +631,8 @@ Y6S.TEMPLATES = [
   id: 'organizasyon-semasi',
   tags: 'organizasyon semasi, org sema, hiyerarsi, kadro, teskilat',
   name: 'Organizasyon Şeması',
-  code: 'FR-ORG-01',
+  code: '',
+  resmi: false,
   icon: 'org',
   phase: 'D',
   orientation: 'landscape',
@@ -629,7 +668,11 @@ Y6S.TEMPLATES = [
   id: 'a3-kaizen',
   tags: 'a3, puko, pdca, rapor, problem cozme, kaizen',
   name: 'A3 Kaizen Formu',
-  code: 'FR-A3-01',
+  code: 'SYB-F-0360',
+  resmiAd: 'A3 Kaizen Formu',
+  yayinTarihi: '1.07.2022',
+  revNo: '1',
+  revTarihi: '12.11.2025',
   icon: 'a3',
   phase: 'I',
   orientation: 'landscape',
@@ -738,7 +781,8 @@ Y6S.TEMPLATES = [
   id: 'aksiyon-plani',
   tags: 'aksiyon plani, 5n1k, 5w1h, termin, takip, is plani',
   name: 'Aksiyon Planı (5N1K)',
-  code: 'FR-AKS-01',
+  code: '',
+  resmi: false,
   icon: 'target',
   phase: 'I',
   orientation: 'landscape',
@@ -807,9 +851,9 @@ Y6S.FLOW_TYPES = [
 ];
 
 Y6S.VALUE_TYPES = [
-  { key: 'kd',    label: 'Katma Değerli',             color: '#1c7c54' },
-  { key: 'kdz',   label: 'Katma Değersiz (Zorunlu)',  color: '#b4690e' },
-  { key: 'israf', label: 'İsraf',                     color: '#b3261e' }
+  { key: 'kd',    label: 'Katma Değerli',             color: '#026A39' },
+  { key: 'kdz',   label: 'Katma Değersiz (Zorunlu)',  color: '#B8860B' },
+  { key: 'israf', label: 'İsraf',                     color: '#E7242A' }
 ];
 
 Y6S.M6 = M6;

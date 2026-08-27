@@ -54,13 +54,14 @@ window.Y6S = window.Y6S || {};
 
   /* ---------------------------------------------------------------- veri */
 
+  /* SGB-F-0650 Kök Neden Analiz Formları, NOT-1 uyarınca. */
   Y.CNX = [
-    { key: 'C', label: 'C — Kontrol Edilen', color: '#1c7c54',
-      desc: 'Prosedür/talimatla sabitlenen, kontrol altında tutulan değişken.' },
-    { key: 'N', label: 'N — Gürültü (Noise)', color: '#b4690e',
-      desc: 'Kontrol edilemeyen ya da kontrolü ekonomik olmayan değişken; etkisi izlenir.' },
-    { key: 'X', label: 'X — Deneysel / Kritik', color: '#b3261e',
-      desc: 'Üzerinde deney yapılacak, optimum değeri aranan kritik değişken.' }
+    { key: 'C', label: 'C — Kontrol edilebilir', color: '#026A39',
+      desc: 'Kontrol edilebilir neden: prosedür, talimat veya kontrol planı ile sabitlenebilir.' },
+    { key: 'N', label: 'N — Kontrol edilemez', color: '#F7B449',
+      desc: 'Kontrol edilemeyen neden: doğrudan müdahale edilemez, etkisi izlenir.' },
+    { key: 'X', label: 'X — Bilinmiyor', color: '#E7242A',
+      desc: 'Bilinmiyor: kontrol edilebilirliği belirsiz, araştırma/deney gerekir.' }
   ];
 
   Y.cnxColor = function (k) {
@@ -287,7 +288,7 @@ window.Y6S = window.Y6S || {};
       }));
       lanesG.appendChild(s('rect', {
         x: 0, y: y, width: LANE_W, height: LANE_H,
-        fill: '#0e4d64', stroke: '#0e4d64', 'stroke-width': 1,
+        fill: '#142E51', stroke: '#142E51', 'stroke-width': 1,
         class: 'fm-lane-head', 'data-lane': lane.id
       }));
       var lines = Y.wrapText(lane.ad || 'Kulvar', LANE_H - 30, 12.5, 2);
@@ -329,7 +330,7 @@ window.Y6S = window.Y6S || {};
       }
       edgesG.appendChild(s('path', {
         d: r.d, fill: 'none',
-        stroke: sel ? '#14708f' : '#55637a', 'stroke-width': sel ? 2.6 : 1.6,
+        stroke: sel ? '#2E7D32' : '#55637a', 'stroke-width': sel ? 2.6 : 1.6,
         'marker-end': 'url(#fm-arrow)', 'pointer-events': 'none'
       }));
       if (String(e.etiket || '').trim()) {
@@ -356,7 +357,7 @@ window.Y6S = window.Y6S || {};
       var sp = shapePath(shapeOf(n.tur), b.x, b.y, b.w, b.h);
       var kc = kdColor(n.kd);
       g.appendChild(s(sp.tag, Object.assign({}, sp.attrs, {
-        fill: '#f7f9fb', stroke: sel ? '#14708f' : '#0e4d64', 'stroke-width': sel ? 2.4 : 1.6
+        fill: '#f7f9fb', stroke: sel ? '#2E7D32' : '#142E51', 'stroke-width': sel ? 2.4 : 1.6
       })));
 
       var lines = Y.wrapText(n.metin, b.w - (n.tur === 'Karar' ? 62 : 30), 12, 2);
@@ -409,7 +410,7 @@ window.Y6S = window.Y6S || {};
 
     if (opts.interactive) {
       svg.appendChild(s('path', { class: 'fm-ghost', d: '', fill: 'none',
-        stroke: '#14708f', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'pointer-events': 'none' }));
+        stroke: '#2E7D32', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'pointer-events': 'none' }));
     }
     return svg;
   };

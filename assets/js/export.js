@@ -137,19 +137,23 @@ window.Y6S = window.Y6S || {};
     'table{border-collapse:collapse;}',
     'td,th{vertical-align:top;}',
     'table.wlayout,table.wlayout>tbody>tr>td{border:none;}',
-    '.p-head-brand{background:#0e4d64;color:#fff;padding:6pt 8pt;}',
-    '.p-head-brand .b1{font-size:13pt;font-weight:bold;}',
-    '.p-head-brand .b2{font-size:6.5pt;letter-spacing:1pt;}',
-    '.p-head-title{padding:6pt 8pt;}',
-    '.p-head-title .t1{font-size:13pt;font-weight:bold;}',
-    '.p-head-title .t2{font-size:8.5pt;color:#55637a;}',
-    '.p-head-code{padding:6pt 8pt;font-size:7.5pt;color:#55637a;border-left:0.75pt solid #b9c3d1;}',
-    '.p-head-code b{display:block;font-size:9pt;color:#16202e;}',
+    'table.p-official{width:100%;margin-bottom:8pt;}',
+    'table.p-official>tbody>tr>td{border:0.75pt solid #142E51;vertical-align:middle;}',
+    '.p-official .po-logo{width:120pt;padding:5pt 7pt;text-align:center;}',
+    '.p-official .po-logo img{width:104pt;height:auto;}',
+    '.p-official .po-title{padding:5pt 9pt;text-align:center;}',
+    '.p-official .po-title .t1{font-size:12pt;font-weight:bold;color:#142E51;}',
+    '.p-official .po-title .t2{font-size:8.5pt;color:#55637a;}',
+    '.p-official .po-meta{width:176pt;padding:0;}',
+    '.p-official .po-meta table{width:100%;}',
+    '.p-official .po-meta th{border:0.5pt solid #b9c3d1;padding:2pt 4pt;font-size:7pt;text-align:left;background:#f2f5f2;color:#55637a;width:55%;}',
+    '.p-official .po-meta td{border:0.5pt solid #b9c3d1;padding:2pt 4pt;font-size:7pt;font-weight:bold;color:#142E51;}',
+    '.p-unofficial{border:0.5pt dashed #b9c3d1;padding:3pt 5pt;font-size:7pt;color:#55637a;margin-bottom:8pt;}',
     'table.p-meta{width:100%;margin:0 0 8pt 0;font-size:8.5pt;}',
     'table.p-meta td{border:0.75pt solid #b9c3d1;padding:3pt 5pt;}',
     'table.p-meta td.k{background:#f4f7fa;font-weight:bold;color:#55637a;white-space:nowrap;}',
     '.p-sec{margin-bottom:9pt;}',
-    '.p-sec-title{background:#0e4d64;color:#fff;font-size:9.5pt;font-weight:bold;padding:3pt 6pt;}',
+    '.p-sec-title{background:#142E51;color:#fff;font-size:9.5pt;font-weight:bold;padding:3pt 6pt;}',
     '.p-sec-title .n{display:none;}',
     '.p-sec-box{border:0.75pt solid #b9c3d1;padding:6pt;}',
     '.p-field{margin-bottom:6pt;}',
@@ -157,16 +161,16 @@ window.Y6S = window.Y6S || {};
     '.p-field .val{font-size:9pt;border-bottom:0.5pt dotted #dde3ea;padding-bottom:2pt;}',
     '.p-field .val.empty{color:#a7b0bd;}',
     'table.p-tbl{width:100%;font-size:8.5pt;}',
-    'table.p-tbl th{background:#0e4d64;color:#fff;border:0.75pt solid #0e4d64;padding:3pt 4pt;text-align:left;font-size:8pt;}',
+    'table.p-tbl th{background:#142E51;color:#fff;border:0.75pt solid #142E51;padding:3pt 4pt;text-align:left;font-size:8pt;}',
     'table.p-tbl td{border:0.75pt solid #b9c3d1;padding:3pt 4pt;}',
     'table.p-tbl td.n{text-align:center;color:#55637a;}',
     'table.p-tbl td.d{white-space:nowrap;}',
     'table.p-why{width:100%;font-size:9pt;}',
     'table.p-why td{border:0.75pt solid #b9c3d1;padding:4pt 5pt;}',
-    'table.p-why td.q{width:70pt;background:#f4f7fa;font-weight:bold;color:#0e4d64;}',
-    '.p-pair h4{margin:0;padding:3pt 5pt;font-size:8.5pt;color:#fff;background:#0e4d64;}',
-    '.p-pair .before h4{background:#b3261e;}',
-    '.p-pair .after h4{background:#1c7c54;}',
+    'table.p-why td.q{width:70pt;background:#f4f7fa;font-weight:bold;color:#142E51;}',
+    '.p-pair h4{margin:0;padding:3pt 5pt;font-size:8.5pt;color:#fff;background:#142E51;}',
+    '.p-pair .before h4{background:#E7242A;}',
+    '.p-pair .after h4{background:#026A39;}',
     '.p-pair .pbody{border:0.75pt solid #b9c3d1;padding:5pt;}',
     '.p-pair .cap{font-size:8.5pt;}',
     '.p-diagram{text-align:center;margin:6pt 0;}',
@@ -188,7 +192,6 @@ window.Y6S = window.Y6S || {};
     var landscape = tpl.orientation === 'landscape';
 
     // Word'e uygun yapıya dönüştür
-    flexToTable(doc, '.p-head', { pad: '0' });
     flexToTable(doc, '.p-a3', { pad: '0 8pt 0 0' });
     flexToTable(doc, '.p-pair', { pad: '0 6pt 0 0' });
     flexToTable(doc, '.p-cols', { pad: '0 8pt 0 0' });
@@ -212,8 +215,10 @@ window.Y6S = window.Y6S || {};
       if (!m || !im.parentNode) return;
       var name = 'image' + (parts.length + 1) + (m[1] === 'image/png' ? '.png' : '.jpg');
       parts.push({ name: name, type: m[1], b64: m[2] });
+      // Logo künye hücresine sığmalı; diğer görseller sayfa genişliğine yayılır.
+      var w = im.closest && im.closest('.po-logo') ? 138 : 300;
       // Yükseklik 0 bırakılır; Word en/boy oranını kendisi korur.
-      im.parentNode.replaceChild(imgToken(name, 300, 0), im);
+      im.parentNode.replaceChild(imgToken(name, w, 0), im);
     });
 
     Promise.all(svgs.map(function (s) { return svgToPng(s, 2); })).then(function (pngs) {

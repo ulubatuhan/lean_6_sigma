@@ -10,8 +10,6 @@
   Y.initTheme();
   Y.mountThemeButton(document.getElementById('theme-slot'));
 
-  var logo = document.getElementById('brand-logo');
-  if (logo && Y.BRAND) logo.src = Y.BRAND.logo;
   var brandIcon = document.getElementById('brand-icon');
   if (brandIcon && Y.BRAND) brandIcon.src = Y.BRAND.icon;
 

@@ -233,8 +233,8 @@ window.Y6S = window.Y6S || {};
   }
 
   function orgBlock(f, data) {
-    var nodes = data[f.name] || [];
-    var svg = Y.orgchartSVG(nodes);
+    var nodes = Y.normOrgchart(data[f.name]);
+    var svg = Y.orgchartSVGString(data[f.name]);
     var h = svg ? '<div class="p-diagram p-nobreak">' + svg + '</div>' : '';
     var filled = nodes.filter(function (n) { return String(n.ad || n.unvan || '').trim(); });
     if (filled.length) {

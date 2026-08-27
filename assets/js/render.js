@@ -176,6 +176,7 @@ window.Y6S = window.Y6S || {};
           n.style.height = 'auto';
           n.style.height = Math.min(180, n.scrollHeight + 2) + 'px';
           changed();
+          maybeAutoGrow();
         });
         setTimeout(function () { n.style.height = Math.min(180, n.scrollHeight + 2) + 'px'; }, 0);
       } else if (col.type === 'select') {
@@ -183,7 +184,7 @@ window.Y6S = window.Y6S || {};
         n.appendChild(el('option', { value: '', text: '—' }));
         (col.options || []).forEach(function (o) { n.appendChild(el('option', { value: o, text: o })); });
         n.value = row[col.name] || '';
-        n.addEventListener('change', function () { row[col.name] = n.value; changed(); });
+        n.addEventListener('change', function () { row[col.name] = n.value; changed(); maybeAutoGrow(); });
       } else {
         n = el('input', { type: col.type === 'date' ? 'date' : col.type === 'number' ? 'number' : 'text',
           placeholder: col.placeholder || '' });
@@ -198,25 +199,40 @@ window.Y6S = window.Y6S || {};
             });
           }
           changed();
+          maybeAutoGrow();
         });
       }
       td.appendChild(n);
       return td;
     }
 
+    /** Son satır dolduğunda otomatik olarak yeni boş satır ekler (field.autoGrow). */
+    function maybeAutoGrow() {
+      if (!field.autoGrow || !rows.length) return;
+      var last = rows[rows.length - 1];
+      var filled = Object.keys(last || {}).some(function (k) { return String(last[k] || '').trim(); });
+      if (filled) {
+        rows.push({});
+        tbody.appendChild(buildRowEl(rows.length - 1));
+      }
+    }
+
+    function buildRowEl(i) {
+      var row = rows[i];
+      var tr = el('tr');
+      tr.appendChild(el('td', { class: 'rowno', text: String(i + 1) }));
+      cols.forEach(function (c) { tr.appendChild(cell(c, row)); });
+      var act = el('td', { class: 'rowact' });
+      var del = el('button', { class: 'rowdel', type: 'button', title: 'Satırı sil', 'aria-label': 'Satırı sil', html: Y.ui('trash') });
+      del.addEventListener('click', function () { rows.splice(i, 1); paint(); changed(); });
+      act.appendChild(del);
+      tr.appendChild(act);
+      return tr;
+    }
+
     function paint() {
       tbody.innerHTML = '';
-      rows.forEach(function (row, i) {
-        var tr = el('tr');
-        tr.appendChild(el('td', { class: 'rowno', text: String(i + 1) }));
-        cols.forEach(function (c) { tr.appendChild(cell(c, row)); });
-        var act = el('td', { class: 'rowact' });
-        var del = el('button', { class: 'rowdel', type: 'button', title: 'Satırı sil', 'aria-label': 'Satırı sil', html: Y.ui('trash') });
-        del.addEventListener('click', function () { rows.splice(i, 1); paint(); changed(); });
-        act.appendChild(del);
-        tr.appendChild(act);
-        tbody.appendChild(tr);
-      });
+      rows.forEach(function (row, i) { tbody.appendChild(buildRowEl(i)); });
       if (!rows.length) {
         tbody.appendChild(el('tr', {}, [
           el('td', { colspan: String(cols.length + 2), class: 'muted tiny', style: 'padding:14px;text-align:center',
@@ -704,6 +720,114 @@ window.Y6S = window.Y6S || {};
 
     table: function (f, data, changed) {
       return tableEditor(f, data, changed).node;
+    },
+
+    /* ---- SYB-D-0605 stratejik hedef-süreç matrisi ---- */
+    stratmatrix: function (f, data, changed) {
+      var v = data[f.name];
+      if (!v || typeof v !== 'object') v = data[f.name] = { cols: [], marks: {} };
+      if (!Array.isArray(v.cols)) v.cols = [];
+      if (!v.marks || typeof v.marks !== 'object') v.marks = {};
+      if (!v.cols.length) {
+        Y.STRAT_PERSPEKTIF.forEach(function (p) {
+          v.cols.push({ id: Y.uid(), persp: p.key, code: p.key + '1.1' });
+        });
+      }
+
+      function perspOf(key) {
+        var arr = Y.STRAT_PERSPEKTIF.filter(function (p) { return p.key === key; });
+        return arr[0] || Y.STRAT_PERSPEKTIF[0];
+      }
+
+      var wrap = el('div', { class: 'stratmatrix' });
+      var scroll = el('div', { class: 'tbl-wrap sm-wrap' });
+      var table = el('table', { class: 'etbl sm-tbl' });
+      scroll.appendChild(table);
+      wrap.appendChild(scroll);
+
+      var actions = el('div', { class: 'tbl-actions' });
+      var addCol = el('button', { class: 'btn btn-sm', type: 'button', html: Y.ui('plus') + '<span>Hedef sütunu ekle</span>' });
+      addCol.addEventListener('click', function () {
+        v.cols.push({ id: Y.uid(), persp: 'F', code: '' });
+        changed(); paint();
+        var last = table.querySelectorAll('.sm-code');
+        if (last.length) last[last.length - 1].focus();
+      });
+      actions.appendChild(addCol);
+      wrap.appendChild(actions);
+
+      function markKey(leaf) { return leaf; }
+
+      function paint() {
+        table.innerHTML = '';
+        var thead = el('thead');
+        var htr = el('tr');
+        htr.appendChild(el('th', { text: 'Ana Grup', style: 'width:120px' }));
+        htr.appendChild(el('th', { text: 'Üst Süreç', style: 'width:170px' }));
+        htr.appendChild(el('th', { text: 'Alt Süreç', style: 'width:230px' }));
+        v.cols.forEach(function (col, ci) {
+          var p = perspOf(col.persp);
+          var th = el('th', { class: 'sm-colhead' });
+          var top = el('div', { class: 'sm-colhead-top' });
+          var persp = el('button', { type: 'button', class: 'sm-persp', title: 'Perspektif: ' + p.label + ' — tıklayarak değiştir', text: col.persp });
+          persp.style.background = p.color;
+          persp.addEventListener('click', function () {
+            var idx = Y.STRAT_PERSPEKTIF.indexOf(p);
+            col.persp = Y.STRAT_PERSPEKTIF[(idx + 1) % Y.STRAT_PERSPEKTIF.length].key;
+            changed(); paint();
+          });
+          var code = el('input', { class: 'ctl sm-code', type: 'text', value: col.code || '', placeholder: 'Örn. F1.1' });
+          code.addEventListener('input', function () { col.code = code.value; changed(); });
+          var del = el('button', { class: 'rowdel', type: 'button', title: 'Sütunu sil', 'aria-label': 'Sütunu sil', html: Y.ui('trash') });
+          del.addEventListener('click', function () {
+            v.cols.splice(ci, 1);
+            changed(); paint();
+          });
+          top.appendChild(persp); top.appendChild(code); top.appendChild(del);
+          th.appendChild(top);
+          htr.appendChild(th);
+        });
+        thead.appendChild(htr);
+        table.appendChild(thead);
+
+        var tbody = el('tbody');
+        Y.STRAT_HIYERARSI.forEach(function (grp, gi) {
+          var grupAd = grp[0], ustAd = grp[1], altList = grp[2];
+          altList.forEach(function (alt, ai) {
+            var leaf = 'g' + gi + '_a' + ai;
+            var tr = el('tr');
+            if (ai === 0) {
+              // Ana Grup rowspan: bu grup satırı ilk kez mi başlıyor?
+              var isFirstOfGroup = gi === 0 || Y.STRAT_HIYERARSI[gi - 1][0] !== grupAd;
+              if (isFirstOfGroup) {
+                var groupSpan = 0;
+                for (var k = gi; k < Y.STRAT_HIYERARSI.length && Y.STRAT_HIYERARSI[k][0] === grupAd; k++) {
+                  groupSpan += Y.STRAT_HIYERARSI[k][2].length;
+                }
+                tr.appendChild(el('td', { class: 'sm-grup', rowspan: String(groupSpan), text: grupAd }));
+              }
+              tr.appendChild(el('td', { class: 'sm-ust', rowspan: String(altList.length), text: ustAd }));
+            }
+            tr.appendChild(el('td', { class: 'sm-alt', text: alt }));
+            v.cols.forEach(function (col) {
+              var td = el('td', { class: 'sm-mark' });
+              var cb = el('input', { type: 'checkbox' });
+              if (!v.marks[leaf]) v.marks[leaf] = {};
+              cb.checked = !!v.marks[leaf][col.id];
+              cb.addEventListener('change', function () {
+                v.marks[leaf][col.id] = cb.checked;
+                changed();
+              });
+              td.appendChild(cb);
+              tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+          });
+        });
+        table.appendChild(tbody);
+      }
+      paint();
+      return wrap;
     }
   };
 
@@ -739,10 +863,10 @@ window.Y6S = window.Y6S || {};
       }
       var maker = FIELDS[f.type] || FIELDS.text;
       var wrapCls = 'field ' + widthClass(
-        ['table', 'pair', 'fivewhy', 'fishbone', 'sipoc', 'flowmap', 'orgchart'].indexOf(f.type) >= 0 ? 'full' : f.width
+        ['table', 'pair', 'fivewhy', 'fishbone', 'sipoc', 'flowmap', 'orgchart', 'stratmatrix'].indexOf(f.type) >= 0 ? 'full' : f.width
       );
       var box = el('div', { class: wrapCls });
-      if (f.label && ['table', 'pair', 'fishbone', 'sipoc', 'flowmap', 'orgchart'].indexOf(f.type) < 0) {
+      if (f.label && ['table', 'pair', 'fishbone', 'sipoc', 'flowmap', 'orgchart', 'stratmatrix'].indexOf(f.type) < 0) {
         box.appendChild(labelFor(f));
       }
       box.appendChild(maker(f, data, changed, ctx));
@@ -813,6 +937,10 @@ window.Y6S = window.Y6S || {};
         return (v || []).some(function (n) { return String((n && (n.ad || n.unvan)) || '').trim(); });
       case 'checks':
         return Array.isArray(v) && v.length > 0;
+      case 'stratmatrix':
+        return !!v && v.marks && Object.keys(v.marks).some(function (leaf) {
+          return Object.keys(v.marks[leaf]).some(function (cid) { return v.marks[leaf][cid]; });
+        });
       default:
         return !!String(v == null ? '' : v).trim();
     }

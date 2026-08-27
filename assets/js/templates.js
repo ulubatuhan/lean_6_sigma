@@ -30,7 +30,8 @@ Y6S.ICONS = {
   a3:      '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 9h18M3 15h9"/>',
   target:  '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>',
   check:   '<path d="M4 12.5 9 17.5 20 6.5"/>',
-  doc:     '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>'
+  doc:     '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+  matrix:  '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'
 };
 
 /* ---------- Ortak parçalar ---------- */
@@ -67,6 +68,13 @@ var M6 = [
 
 var DURUM_OPT = ['Planlandı', 'Devam Ediyor', 'Tamamlandı', 'İptal'];
 
+/* Yalın üretimin 8 israf (muda) türü — TIMWOOD + kullanılmayan yetenek. */
+var MUDA_TYPES = [
+  'Fazla Üretim', 'Bekleme', 'Taşıma', 'Fazla İşlem',
+  'Stok', 'Hareket', 'Hata / Yeniden İşleme', 'Kullanılmayan Yetenek'
+];
+Y6S.MUDA_TYPES = MUDA_TYPES;
+
 /* CNX sınıflandırması — SGB-F-0650 Kök Neden Analiz Formları, NOT-1. */
 var CNX_OPT = ['C — Kontrol edilebilir', 'N — Kontrol edilemez', 'X — Bilinmiyor'];
 
@@ -95,6 +103,36 @@ var CNX_SONUC = {
       type: 'textarea', width: 'third', rows: 3 }
   ]
 };
+
+/* SYB-D-0605 Stratejik Hedef-Süreç Matrisi — YEPAŞ süreç hiyerarşisi (Ana Grup / Üst Süreç / Alt Süreç). */
+var STRAT_HIYERARSI = [
+  ['Temel İş Süreçleri', 'Hizmetlerin Geliştirilmesi', ['Yeni Hizmet Geliştirme', 'Yeni Kanal Geliştirme']],
+  ['Temel İş Süreçleri', 'Kanal Yönetimi', ['Dış Bölge Bayi Yönetimi', 'Dijital Kanalların Yönetimi', 'Müşteri İşlem Merkezlerinin Yönetimi']],
+  ['Temel İş Süreçleri', 'Hizmetin Satışı ve Sunumu', ['Kurumsal Satış Yönetimi', 'Bölge Satış Yönetimi', 'Sözleşme Yönetimi', 'Faturalama', 'Lisanssız Üreticiler Operasyonlarının Yönetimi', 'Tahsilat']],
+  ['Temel İş Süreçleri', 'Elektrik Ticareti', ['Talep Tahminleme', 'Elektrik Tedariği ve Satışı']],
+  ['Temel İş Süreçleri', 'Müşteri İlişkileri Yönetimi', ['Müşteri İhtiyaç ve Beklentilerinin Yönetimi', 'Müşteri Deneyimini Yönetme']],
+  ['Yönetsel İş Süreçleri', 'Stratejik Yönetim', ['Stratejik Planlama', 'Kurumsal Performans Yönetimi', 'Kurumsal Risk Yönetimi', 'Kurumsal Yönetişim']],
+  ['Yönetsel İş Süreçleri', 'Kurumsal Gelişim', ['Süreçlerle Yönetim', 'Projelerle Yönetim', 'Yönetim Sistemi Standartları ile Güçlenme', 'Kurum Kültürünü Güçlendirme']],
+  ['Yönetsel İş Süreçleri', 'Kurumsal İletişim Yönetimi', ['Kurumsal Tanıtım', 'Kurumsal Algı ve İmaj Yönetimi', 'Kurum İçi İletişim Yönetimi']],
+  ['Yönetsel İş Süreçleri', 'Sürdürülebilirlik Yönetimi', ['Yönetişim', 'Sosyal', 'Çevresel']],
+  ['Destek İş Süreçleri', 'Çalışan Yönetimi', ['İstihdam Yönetimi', 'Çalışan Gelişimi', 'Çalışan Bağlılığı ve Motivasyon', 'Özlük İşleri', 'İş Sağlığı ve Güvenliği']],
+  ['Destek İş Süreçleri', 'Mali Yönetim', ['Bütçe Yönetimi', 'Finans Yönetimi', 'Muhasebe İşlemleri', 'Tarife ve Regülasyon']],
+  ['Destek İş Süreçleri', 'Hukuksal Yönetim', ['Mevzuat Yönetimi', 'Sözleşme ve Mütalaa Yönetimi', 'KVKK Süreç Yönetimi', 'Dava, Hakem Heyeti, Arabuluculuk ve Sözleşmeli Avukatların İcra Takip Denetimi Yönetimi']],
+  ['Destek İş Süreçleri', 'BT Yönetimi', ['BT Envanter Yönetimi', 'BT Altyapı İş Sürekliliği', 'Yazılım Geliştirme', 'Kullanıcı Destek Süreci', 'Veri Güvenliği']],
+  ['Destek İş Süreçleri', 'Tedarik ve Lojistik', ['Tedarikçi Yönetimi', 'Tedarik', 'Malzeme ve Depo Yönetimi', 'Araç Filo Yönetimi']],
+  ['Destek İş Süreçleri', 'İdari Hizmetlerin Yönetimi', ['Şirket İçi İdari Hizmetler', 'Bina Tesis Yönetimi']]
+];
+Y6S.STRAT_HIYERARSI = STRAT_HIYERARSI;
+
+/* Dengeli Skorkart (Balanced Scorecard) perspektifleri — SYB-D-0605 sütun grupları. */
+var STRAT_PERSPEKTIF = [
+  { key: 'F', label: 'Finansal',  color: '#026A39' },
+  { key: 'M', label: 'Müşteri',   color: '#14708f' },
+  { key: 'S', label: 'Süreç',     color: '#142E51' },
+  { key: 'G', label: 'Gelişim',   color: '#7a4bbd' },
+  { key: 'T', label: 'Diğer',     color: '#B8860B' }
+];
+Y6S.STRAT_PERSPEKTIF = STRAT_PERSPEKTIF;
 
 /* SGB-F-0650 NOT-2. */
 var KNA_NOT2 = {
@@ -145,8 +183,7 @@ Y6S.TEMPLATES = [
         { name: 'problem', label: 'Mevcut Durum / Problem', type: 'textarea', width: 'full', rows: 4,
           placeholder: 'Ne oluyor? Ne sıklıkla? Kime, ne kadar zarar veriyor?' },
         { name: 'riskler', label: 'Projede Öngörülen Riskler', type: 'textarea', width: 'full', rows: 3 },
-        { name: 'kayip_turu', label: 'İsraf Türü', type: 'select', width: 'half',
-          options: ['Fazla Üretim', 'Bekleme', 'Taşıma', 'Fazla İşlem', 'Stok', 'Hareket', 'Hata / Yeniden İşleme', 'Kullanılmayan Yetenek'] }
+        { name: 'kayip_turu', label: 'İsraf Türü', type: 'select', width: 'half', options: MUDA_TYPES }
       ]
     },
     {
@@ -266,7 +303,7 @@ Y6S.TEMPLATES = [
   icon: 'bulb',
   phase: 'D',
   orientation: 'portrait',
-  desc: 'Ekipten çıkan tüm fikirleri toplayın, oylayın ve önceliklendirerek karara bağlayın.',
+  desc: 'Ekipten çıkan tüm fikirleri eleştirmeden ve oylamadan toplayın, kayıt altına alın.',
   meta: [
     { name: 'konu', label: 'Beyin Fırtınası Konusu', type: 'text', width: 'full',
       placeholder: 'Örn. Sevkiyat hatalarını azaltmak için neler yapabiliriz?' },
@@ -293,34 +330,23 @@ Y6S.TEMPLATES = [
     },
     {
       title: 'Fikirler',
-      hint: 'Kural: Bu aşamada hiçbir fikir eleştirilmez. Önce nicelik, sonra nitelik. Fikirler birleştirilebilir.',
+      hint: 'Kural: Bu aşamada hiçbir fikir eleştirilmez veya oylanmaz. Amaç, mümkün olduğunca çok sayıda fikri ' +
+        'ortaya dökmek ve kaydetmektir. Son satıra yazmaya başladığınızda yeni satır otomatik eklenir.',
       fields: [
-        { name: 'fikirler', type: 'table', label: '',
+        { name: 'fikirler', type: 'table', label: '', autoGrow: true,
           columns: [
-            { name: 'fikir',    label: 'Fikir',      type: 'textarea', width: '40%' },
-            { name: 'oneren',   label: 'Öneren',     type: 'text',     width: '16%' },
-            { name: 'kategori', label: 'Kategori',   type: 'text',     width: '16%' },
-            { name: 'oy',       label: 'Oy',         type: 'number',   width: '10%' },
-            { name: 'etki',     label: 'Etki',       type: 'select',   width: '9%', options: ['Yüksek', 'Orta', 'Düşük'] },
-            { name: 'zorluk',   label: 'Zorluk',     type: 'select',   width: '9%', options: ['Düşük', 'Orta', 'Yüksek'] }
+            { name: 'fikir',    label: 'Fikir',    type: 'textarea', width: '70%' },
+            { name: 'kategori', label: 'Kategori', type: 'text',     width: '30%' }
           ],
-          seed: [{}, {}, {}, {}, {}, {}]
+          seed: [{}, {}, {}, {}]
         }
       ]
     },
     {
-      title: 'Değerlendirme ve Karar',
+      title: 'Sonraki Adım',
+      hint: 'Beyin fırtınasından çıkan fikirler; önceliklendirme için Pareto Analizi, kök neden için Balık Kılçığı / 5 Neden gibi diğer araçlara girdi olarak kullanılabilir.',
       fields: [
-        { name: 'secilen', label: 'Uygulanmasına Karar Verilen Fikirler', type: 'textarea', width: 'full', rows: 4 },
-        { name: 'aksiyon', type: 'table', label: 'Aksiyonlar',
-          columns: [
-            { name: 'is',      label: 'Yapılacak İş', type: 'textarea', width: '46%' },
-            { name: 'sorumlu', label: 'Sorumlu',      type: 'text',     width: '20%' },
-            { name: 'termin',  label: 'Termin',       type: 'date',     width: '17%' },
-            { name: 'durum',   label: 'Durum',        type: 'select',   width: '17%', options: DURUM_OPT }
-          ],
-          seed: [{}, {}, {}]
-        }
+        { name: 'notlar', label: 'Toplantı Notları / Sonraki Adım', type: 'textarea', width: 'full', rows: 3 }
       ]
     }
   ]
@@ -881,12 +907,12 @@ Y6S.TEMPLATES = [
       fields: [
         { name: 'aksiyonlar', type: 'table', label: '',
           columns: [
-            { name: 'ne',       label: 'Ne (What)',      type: 'textarea', width: '22%' },
-            { name: 'neden',    label: 'Neden (Why)',    type: 'textarea', width: '17%' },
-            { name: 'nerede',   label: 'Nerede (Where)', type: 'text',     width: '11%' },
-            { name: 'ne_zaman', label: 'Ne Zaman (When)', type: 'date',    width: '11%' },
-            { name: 'kim',      label: 'Kim (Who)',      type: 'text',     width: '12%' },
-            { name: 'nasil',    label: 'Nasıl (How)',    type: 'textarea', width: '17%' },
+            { name: 'ne',       label: 'Ne',      type: 'textarea', width: '22%' },
+            { name: 'neden',    label: 'Neden',   type: 'textarea', width: '17%' },
+            { name: 'nerede',   label: 'Nerede',  type: 'text',     width: '11%' },
+            { name: 'ne_zaman', label: 'Ne Zaman', type: 'date',    width: '11%' },
+            { name: 'kim',      label: 'Kim',     type: 'text',     width: '12%' },
+            { name: 'nasil',    label: 'Nasıl',   type: 'textarea', width: '17%' },
             { name: 'durum',    label: 'Durum',          type: 'select',   width: '10%', options: DURUM_OPT }
           ],
           seed: [{}, {}, {}, {}, {}]
@@ -898,6 +924,44 @@ Y6S.TEMPLATES = [
       fields: [
         { name: 'riskler', label: 'Riskler ve Önlemler', type: 'textarea', width: 'half', rows: 3 },
         { name: 'ihtiyac', label: 'Gerekli Kaynak / Bütçe', type: 'textarea', width: 'half', rows: 3 },
+        ONAY
+      ]
+    }
+  ]
+},
+
+/* ---------------------------------------------------------------- 12 */
+{
+  id: 'stratejik-hedef-surec-matrisi',
+  tags: 'stratejik, hedef, surec matrisi, bsc, balanced scorecard, x matrisi, hoshin, strateji haritasi',
+  name: 'Stratejik Hedef-Süreç Matrisi',
+  code: 'SYB-D-0605',
+  resmiAd: 'Stratejik Hedef-Süreç Matrisi',
+  yayinTarihi: '21.03.2024',
+  revNo: '1',
+  revTarihi: '16.06.2026',
+  icon: 'matrix',
+  phase: 'D',
+  orientation: 'landscape',
+  desc: 'YEPAŞ süreç hiyerarşisini stratejik hedeflerle eşleştirin; hangi sürecin hangi hedefi desteklediğini işaretleyin.',
+  meta: [
+    { name: 'donem', label: 'Dönem', type: 'text', width: 'third', placeholder: 'Örn. 2026' },
+    { name: 'hazirlayan', label: 'Hazırlayan', type: 'text', width: 'third' },
+    { name: 'tarih', label: 'Tarih', type: 'date', width: 'third' }
+  ],
+  sections: [
+    {
+      title: 'Hedef-Süreç Matrisi',
+      hint: 'Sütun başlıklarındaki renkli harf perspektifi gösterir (F: Finansal, M: Müşteri, S: Süreç, G: Gelişim, T: Diğer) — tıklayarak değiştirebilirsiniz. ' +
+        'Kod kutusuna o döneme ait stratejik hedef kodunu yazın (örn. F1.1) ve ilgili süreç satırlarında kutucuğu işaretleyin.',
+      fields: [
+        { name: 'matris', type: 'stratmatrix', label: '' }
+      ]
+    },
+    {
+      title: 'Değerlendirme',
+      fields: [
+        { name: 'notlar', label: 'Notlar / Öncelikli Alanlar', type: 'textarea', width: 'full', rows: 3 },
         ONAY
       ]
     }

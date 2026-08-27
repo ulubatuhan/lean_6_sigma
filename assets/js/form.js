@@ -50,7 +50,7 @@
   }
   if (!rec.data) rec.data = {};
 
-  document.title = rec.title + ' — YEPAŞ Lean 6 Sigma';
+  document.title = rec.title + ' — Yepaş Yalın 6 Sigma Araçları';
 
   /* ---------------------------------------------------------------- üst çubuk */
 

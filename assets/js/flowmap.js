@@ -19,7 +19,9 @@ window.Y6S = window.Y6S || {};
 
   var HEADER_H = 34;   // üst şerit (kulvar başlığı bandı yok, sadece boşluk)
   var LANE_W   = 148;  // sol kulvar etiket kolonu
-  var LANE_H   = 158;  // kulvar yüksekliği
+  var LANE_H   = 158;  // varsayılan kulvar yüksekliği
+  var LANE_H_MIN = 90;
+  var LANE_H_MAX = 420;
   var NODE_W   = 176;
   var NODE_H   = 64;
   var DEC_H    = 78;   // karar kutusu
@@ -27,6 +29,18 @@ window.Y6S = window.Y6S || {};
   var MIN_W    = 1180;
 
   function nodeH(n) { return n.tur === 'Karar' ? DEC_H : NODE_H; }
+
+  /** Kulvarın ayarlanmış yüksekliği (Excel'de satır yüksekliği gibi, kulvar başına). */
+  function laneHeight(lane) {
+    var h = lane && lane.h;
+    return (typeof h === 'number' && h > 0) ? h : LANE_H;
+  }
+  /** i. kulvarın üst y koordinatı — önceki kulvarların yüksekliklerinin toplamı. */
+  function laneTop(data, li) {
+    var y = HEADER_H;
+    for (var i = 0; i < li; i++) y += laneHeight(data.lanes[i]);
+    return y;
+  }
 
   /* ---------------------------------------------------------------- SVG yardımcıları */
 
@@ -174,16 +188,18 @@ window.Y6S = window.Y6S || {};
   function box(data, n) {
     var li = laneIndex(data, n.lane);
     var h = nodeH(n);
-    return { x: LANE_W + n.x, y: HEADER_H + li * LANE_H + n.yOff, w: NODE_W, h: h,
-      cx: LANE_W + n.x + NODE_W / 2, cy: HEADER_H + li * LANE_H + n.yOff + h / 2 };
+    var top = laneTop(data, li) + n.yOff;
+    return { x: LANE_W + n.x, y: top, w: NODE_W, h: h,
+      cx: LANE_W + n.x + NODE_W / 2, cy: top + h / 2 };
   }
 
   function canvasSize(data) {
     var maxX = 0;
     data.nodes.forEach(function (n) { maxX = Math.max(maxX, n.x + NODE_W); });
+    var lanesH = data.lanes.reduce(function (sum, l) { return sum + laneHeight(l); }, 0);
     return {
       w: Math.max(MIN_W, LANE_W + maxX + 90),
-      h: HEADER_H + Math.max(1, data.lanes.length) * LANE_H + 16
+      h: HEADER_H + Math.max(LANE_H, lanesH) + 16
     };
   }
 
@@ -281,20 +297,21 @@ window.Y6S = window.Y6S || {};
     /* --- kulvarlar --- */
     var lanesG = s('g', { class: 'fm-lanes' });
     data.lanes.forEach(function (lane, i) {
-      var y = HEADER_H + i * LANE_H;
+      var y = laneTop(data, i);
+      var lh = laneHeight(lane);
       lanesG.appendChild(s('rect', {
-        x: 0, y: y, width: size.w, height: LANE_H,
+        x: 0, y: y, width: size.w, height: lh,
         fill: i % 2 ? '#f7f9fb' : '#ffffff', stroke: '#dde3ea', 'stroke-width': 1
       }));
       lanesG.appendChild(s('rect', {
-        x: 0, y: y, width: LANE_W, height: LANE_H,
+        x: 0, y: y, width: LANE_W, height: lh,
         fill: '#142E51', stroke: '#142E51', 'stroke-width': 1,
         class: 'fm-lane-head', 'data-lane': lane.id
       }));
-      var lines = Y.wrapText(lane.ad || 'Kulvar', LANE_H - 30, 12.5, 2);
+      var lines = Y.wrapText(lane.ad || 'Kulvar', lh - 30, 12.5, 2);
       var t = textNode(lines, 0, 0, {
         fill: '#ffffff', 'font-size': 12.5, 'font-weight': 700, 'text-anchor': 'middle',
-        transform: 'translate(' + (LANE_W / 2) + ',' + (y + LANE_H / 2) + ') rotate(-90)',
+        transform: 'translate(' + (LANE_W / 2) + ',' + (y + lh / 2) + ') rotate(-90)',
         'pointer-events': 'none'
       });
       // dikey yazı: tspan konumlarını sıfırla
@@ -303,6 +320,13 @@ window.Y6S = window.Y6S || {};
         ts.setAttribute('y', k * 15 - (lines.length - 1) * 7.5 + 4);
       });
       lanesG.appendChild(t);
+      if (opts.interactive) {
+        // Excel'deki satır yüksekliği çekme kolu gibi: alt kenardan sürükleyerek kulvarı yeniden boyutlandırır.
+        lanesG.appendChild(s('rect', {
+          x: 0, y: y + lh - 3, width: size.w, height: 6,
+          class: 'fm-lane-resize', 'data-lane': lane.id, fill: 'transparent'
+        }));
+      }
     });
     lanesG.appendChild(s('rect', {
       x: 0, y: 0, width: size.w, height: HEADER_H, fill: '#eceff4', stroke: '#dde3ea'
@@ -376,6 +400,12 @@ window.Y6S = window.Y6S || {};
         g.appendChild(s('rect', {
           x: b.x + 6, y: b.y + b.h - 4, width: b.w - 12, height: 3, rx: 1.5,
           fill: kc, 'pointer-events': 'none'
+        }));
+      }
+      if (n.kd === 'İsraf' && String(n.israfTuru || '').trim()) {
+        g.appendChild(s('text', {
+          x: b.cx, y: b.y - 5, 'text-anchor': 'middle', 'font-size': 9.5, 'font-weight': 700,
+          fill: '#E7242A', text: 'İSRAF · ' + n.israfTuru.toUpperCase(), 'pointer-events': 'none'
         }));
       }
       var ck = Y.cnxKey(n.cnx);
@@ -539,6 +569,8 @@ window.Y6S = window.Y6S || {};
 
     var hint = el('div', { class: 'fm-hint', html:
       'Kutuyu <strong>sürükleyerek</strong> taşıyın — bıraktığınız kulvar sorumlusu olur. ' +
+      'Kulvarın <strong>alt kenarından tutup sürükleyerek</strong> (Excel’de satır yüksekliği ayarlar gibi) kulvar yüksekliğini değiştirin; ' +
+      'kulvar panelindeki sayı kutusuna da yazabilirsiniz. ' +
       'Kutunun kenarındaki <strong>bağlantı noktasından</strong> başka bir kutuya sürükleyerek ok çizin; ' +
       'karar kutusundan çıkan oklara <strong>Evet / Hayır</strong> etiketi verip dallanma oluşturun. ' +
       'Boş alana <strong>çift tıklayarak</strong> hızlıca işlem kutusu ekleyebilirsiniz.' });
@@ -596,13 +628,22 @@ window.Y6S = window.Y6S || {};
 
     function snap(v) { return Math.round(v / GRID) * GRID; }
 
+    function laneIndexAtY(absY) {
+      var y = HEADER_H;
+      for (var i = 0; i < data.lanes.length - 1; i++) {
+        y += laneHeight(data.lanes[i]);
+        if (absY < y) return i;
+      }
+      return data.lanes.length - 1;
+    }
+
     function placeAt(n, absX, absY) {
-      var li = Math.floor((absY - HEADER_H) / LANE_H);
-      li = Math.max(0, Math.min(data.lanes.length - 1, li));
+      var li = Math.max(0, laneIndexAtY(absY));
       n.lane = data.lanes[li].id;
       n.x = Math.max(8, snap(absX - LANE_W));
-      var bandTop = HEADER_H + li * LANE_H;
-      n.yOff = Math.max(10, Math.min(LANE_H - nodeH(n) - 10, snap(absY - bandTop)));
+      var bandTop = laneTop(data, li);
+      var bandH = laneHeight(data.lanes[li]);
+      n.yOff = Math.max(10, Math.min(bandH - nodeH(n) - 10, snap(absY - bandTop)));
     }
 
     function addNode(tur, at) {
@@ -651,7 +692,8 @@ window.Y6S = window.Y6S || {};
       }
       order.forEach(function (n) {
         n.x = 40 + depth[n.id] * (NODE_W + 72);
-        n.yOff = Math.round((LANE_H - nodeH(n)) / 2);
+        var li = laneIndex(data, n.lane);
+        n.yOff = Math.round((laneHeight(data.lanes[li]) - nodeH(n)) / 2);
       });
       commit();
       Y.toast('Kutular akışa göre dizildi.', 'ok');
@@ -661,13 +703,23 @@ window.Y6S = window.Y6S || {};
 
     var drag = null;   // {node, dx, dy}
     var conn = null;   // {fromId, fromBox}
+    var laneResize = null; // {laneId, startY, startH}
 
     function onPointerDown(e) {
+      var resizeEl = e.target.closest && e.target.closest('.fm-lane-resize');
       var portEl = e.target.closest && e.target.closest('.fm-port');
       var nodeEl = e.target.closest && e.target.closest('.fm-node');
       var edgeEl = e.target.closest && e.target.closest('.fm-edge-hit');
       var laneEl = e.target.closest && e.target.closest('.fm-lane-head');
 
+      if (resizeEl) {
+        e.preventDefault();
+        var lane = data.lanes.filter(function (l) { return l.id === resizeEl.getAttribute('data-lane'); })[0];
+        if (!lane) return;
+        laneResize = { lane: lane, startY: toSVG(e).y, startH: laneHeight(lane) };
+        svg.setPointerCapture(e.pointerId);
+        return;
+      }
       if (portEl) {
         e.preventDefault();
         conn = { fromId: portEl.getAttribute('data-node') };
@@ -700,7 +752,11 @@ window.Y6S = window.Y6S || {};
     }
 
     function onPointerMove(e) {
-      if (drag) {
+      if (laneResize) {
+        var y = toSVG(e).y;
+        laneResize.lane.h = Math.max(LANE_H_MIN, Math.min(LANE_H_MAX, snap(laneResize.startH + (y - laneResize.startY))));
+        drawSoon();
+      } else if (drag) {
         var p = toSVG(e);
         placeAt(drag.node, p.x - drag.dx, p.y - drag.dy);
         drawSoon();
@@ -720,6 +776,7 @@ window.Y6S = window.Y6S || {};
     }
 
     function onPointerUp(e) {
+      if (laneResize) { laneResize = null; commit(); return; }
       if (drag) { drag = null; commit(); return; }
       if (conn) {
         var over = document.elementFromPoint(e.clientX, e.clientY);
@@ -766,6 +823,11 @@ window.Y6S = window.Y6S || {};
       lanePanel.innerHTML = '';
       lanePanel.appendChild(el('div', { class: 'fm-panel-title', text: 'Kulvarlar' }));
       var list = el('div', { class: 'fm-lane-rows' });
+      var head = el('div', { class: 'fm-lane-row fm-lane-row-head' });
+      head.appendChild(el('span', { class: 'fm-lane-n' }));
+      head.appendChild(el('span', { class: 'tiny muted', text: 'Ad' }));
+      head.appendChild(el('span', { class: 'tiny muted fm-lane-h-lab', text: 'Yükseklik (px)' }));
+      list.appendChild(head);
       data.lanes.forEach(function (lane, i) {
         var row = el('div', { class: 'fm-lane-row' + (sel && sel.type === 'lane' && sel.id === lane.id ? ' is-sel' : '') });
         row.appendChild(el('span', { class: 'fm-lane-n', text: String(i + 1) }));
@@ -776,6 +838,15 @@ window.Y6S = window.Y6S || {};
           drawCanvasOnly();
         });
         row.appendChild(inp);
+
+        var hInp = el('input', { class: 'ctl fm-lane-h', type: 'number', min: String(LANE_H_MIN), max: String(LANE_H_MAX),
+          step: '8', title: 'Kulvar yüksekliği (piksel)', value: String(laneHeight(lane)) });
+        hInp.addEventListener('change', function () {
+          lane.h = Math.max(LANE_H_MIN, Math.min(LANE_H_MAX, parseInt(hInp.value, 10) || LANE_H));
+          hInp.value = String(lane.h);
+          commit();
+        });
+        row.appendChild(hInp);
 
         var up = el('button', { class: 'rowdel', type: 'button', title: 'Yukarı taşı', 'aria-label': 'Yukarı taşı', html: Y.ui('up') });
         up.disabled = i === 0;
@@ -878,6 +949,9 @@ window.Y6S = window.Y6S || {};
 
       g.appendChild(field('Süre (dk)', n, 'sure', 'number'));
       g.appendChild(field('Katma değer', n, 'kd', 'select', Y.VALUE_TYPES.map(function (t) { return t.label; })));
+      if (n.kd === 'İsraf') {
+        g.appendChild(field('İsraf Türü (Muda)', n, 'israfTuru', 'select', Y.MUDA_TYPES));
+      }
       g.appendChild(field('CNX sınıfı', n, 'cnx', 'select', Y.CNX_LABELS));
       g.appendChild(field('Girdi', n, 'girdi', 'text'));
       g.appendChild(field('Çıktı', n, 'cikti', 'text'));
@@ -887,7 +961,9 @@ window.Y6S = window.Y6S || {};
       var acts = el('div', { class: 'fm-props-actions' });
       var dup = el('button', { class: 'btn btn-sm', type: 'button', html: Y.ui('copy') + '<span>Kutuyu çoğalt</span>' });
       dup.addEventListener('click', function () {
-        var c = Object.assign({}, n, { id: Y.uid(), x: n.x + 40, yOff: Math.min(LANE_H - nodeH(n) - 10, n.yOff + 24) });
+        var li = laneIndex(data, n.lane);
+        var c = Object.assign({}, n, { id: Y.uid(), x: n.x + 40,
+          yOff: Math.min(laneHeight(data.lanes[li]) - nodeH(n) - 10, n.yOff + 24) });
         data.nodes.push(c);
         sel = { type: 'node', id: c.id };
         commit();

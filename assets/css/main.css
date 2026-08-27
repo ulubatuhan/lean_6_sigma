@@ -151,10 +151,16 @@ button, input, select, textarea { font: inherit; color: inherit; }
   height: 60px;
 }
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
-.brand-mark { height: 32px; width: auto; flex: none; display: block; }
-html[data-theme="dark"] .brand-mark {
-  background: #fff; border-radius: 4px; padding: 2px 4px;
-}
+
+/* Açık temada tam logo (beyaz zeminli JPEG kaynaklı); koyu temada lacivert
+   "YEPAŞ" yazısı zeminde okunaksız kaldığından yalnızca renkli simge + metin. */
+.brand-mark-light { height: 32px; width: auto; flex: none; display: block; }
+.brand-mark-dark { display: none; align-items: center; gap: 8px; }
+.brand-icon { height: 26px; width: auto; flex: none; display: block; }
+.brand-wordmark { font-size: 19px; font-weight: 800; color: var(--text); letter-spacing: -.01em; }
+html[data-theme="dark"] .brand-mark-light { display: none; }
+html[data-theme="dark"] .brand-mark-dark { display: inline-flex; }
+
 .brand-name {
   font-weight: 600; font-size: 14px; color: var(--text-soft);
   padding-left: 12px; border-left: 1px solid var(--border);

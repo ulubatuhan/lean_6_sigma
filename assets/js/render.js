@@ -44,7 +44,35 @@ window.Y6S = window.Y6S || {};
     fr.readAsDataURL(file);
   }
 
-  /** Basit metin listesi düzenleyici (SIPOC, balık kılçığı). */
+  /**
+   * C / N / X seçici. Değer tam etiket olarak saklanır ('C — Kontrol Edilen').
+   * Seçili düğmeye yeniden basmak seçimi kaldırır.
+   */
+  function cnxPicker(get, set, compact) {
+    var box = el('div', { class: 'cnx-pick' + (compact ? ' compact' : '') });
+    Y.CNX.forEach(function (c) {
+      var b = el('button', {
+        type: 'button', class: 'cnx-btn', 'data-k': c.key,
+        title: c.label + ' — ' + c.desc, text: c.key
+      });
+      b.style.setProperty('--cnx', c.color);
+      b.addEventListener('click', function () {
+        set(Y.cnxKey(get()) === c.key ? '' : c.label);
+        paint();
+      });
+      box.appendChild(b);
+    });
+    function paint() {
+      var k = Y.cnxKey(get());
+      Array.prototype.slice.call(box.children).forEach(function (b) {
+        b.classList.toggle('is-on', b.getAttribute('data-k') === k);
+      });
+    }
+    paint();
+    return box;
+  }
+
+  /** Basit metin listesi düzenleyici (SIPOC). */
   function listEditor(getArr, setArr, opts) {
     opts = opts || {};
     var box = el('div', { class: 'fishcat-body' });
@@ -110,9 +138,36 @@ window.Y6S = window.Y6S || {};
     scroll.appendChild(tbl);
     wrap.appendChild(scroll);
 
+    /** 'a*b' biçimindeki formülü satır üzerinde hesaplar. */
+    function applyFormula(row) {
+      cols.forEach(function (c) {
+        if (!c.formula) return;
+        var m = /^(\w+)\*(\w+)$/.exec(c.formula);
+        if (!m) return;
+        var a = parseFloat(row[m[1]]), b = parseFloat(row[m[2]]);
+        row[c.name] = (isNaN(a) || isNaN(b)) ? '' : String(a * b);
+      });
+    }
+
     function cell(col, row) {
       var td = el('td');
       var n;
+      if (col.cnx) {
+        td.className = 'cnxcell';
+        td.appendChild(cnxPicker(
+          function () { return row[col.name]; },
+          function (v) { row[col.name] = v; changed(); },
+          true
+        ));
+        return td;
+      }
+      if (col.formula) {
+        n = el('input', { type: 'number', readonly: true, tabindex: '-1', class: 'calc' });
+        n.value = row[col.name] || '';
+        td.appendChild(n);
+        td.dataset.calc = col.name;
+        return td;
+      }
       if (col.type === 'textarea') {
         n = el('textarea', { rows: 1, placeholder: col.placeholder || '' });
         n.value = row[col.name] || '';
@@ -133,7 +188,17 @@ window.Y6S = window.Y6S || {};
         n = el('input', { type: col.type === 'date' ? 'date' : col.type === 'number' ? 'number' : 'text',
           placeholder: col.placeholder || '' });
         n.value = row[col.name] || '';
-        n.addEventListener('input', function () { row[col.name] = n.value; changed(); });
+        n.addEventListener('input', function () {
+          row[col.name] = n.value;
+          applyFormula(row);
+          var tr = n.closest('tr');
+          if (tr) {
+            Array.prototype.slice.call(tr.querySelectorAll('[data-calc]')).forEach(function (c) {
+              c.querySelector('input').value = row[c.dataset.calc] || '';
+            });
+          }
+          changed();
+        });
       }
       td.appendChild(n);
       return td;
@@ -175,6 +240,16 @@ window.Y6S = window.Y6S || {};
     });
     actions.appendChild(add);
     actions.appendChild(add5);
+    if (field.sortBy) {
+      var sortBtn = el('button', { class: 'btn btn-sm btn-ghost', type: 'button', text: 'Skora göre sırala' });
+      sortBtn.addEventListener('click', function () {
+        rows.sort(function (a, b) {
+          return (parseFloat(b[field.sortBy]) || 0) - (parseFloat(a[field.sortBy]) || 0);
+        });
+        paint(); changed();
+      });
+      actions.appendChild(sortBtn);
+    }
     wrap.appendChild(actions);
 
     paint();
@@ -295,14 +370,19 @@ window.Y6S = window.Y6S || {};
       var v = data[f.name];
       if (!v || typeof v !== 'object') v = data[f.name] = { whys: [] };
       if (!Array.isArray(v.whys)) v.whys = [];
+      // Eski kayıtlar düz metin dizisiydi; {t, kanit} biçimine taşı.
+      v.whys = v.whys.map(function (w) {
+        return (w && typeof w === 'object') ? { t: String(w.t || ''), kanit: String(w.kanit || '') }
+                                            : { t: String(w == null ? '' : w), kanit: '' };
+      });
       var count = f.count || 5;
-      while (v.whys.length < count) v.whys.push('');
+      while (v.whys.length < count) v.whys.push({ t: '', kanit: '' });
 
       var box = el('div', { class: 'whychain' });
 
       function paint() {
         box.innerHTML = '';
-        v.whys.forEach(function (val, i) {
+        v.whys.forEach(function (item, i) {
           var isRoot = i === v.whys.length - 1;
           var row = el('div', { class: 'whyrow' + (isRoot ? ' root' : '') });
           row.appendChild(el('div', { class: 'whybadge', text: String(i + 1) }));
@@ -310,9 +390,16 @@ window.Y6S = window.Y6S || {};
           body.appendChild(el('div', { class: 'field-label', text: (i + 1) + '. Neden?' }));
           var ta = el('textarea', { class: 'ctl', rows: '2',
             placeholder: i === 0 ? 'Problem neden oluştu?' : 'Bir önceki cevap neden gerçekleşti?' });
-          ta.value = val || '';
-          ta.addEventListener('input', function () { v.whys[i] = ta.value; changed(); });
+          ta.value = item.t || '';
+          ta.addEventListener('input', function () { item.t = ta.value; changed(); });
           body.appendChild(ta);
+          if (f.evidence) {
+            var ev = el('input', { class: 'ctl why-ev', type: 'text',
+              placeholder: 'Kanıt / doğrulama — bunu nereden biliyoruz?' });
+            ev.value = item.kanit || '';
+            ev.addEventListener('input', function () { item.kanit = ev.value; changed(); });
+            body.appendChild(ev);
+          }
           row.appendChild(body);
           box.appendChild(row);
         });
@@ -323,7 +410,7 @@ window.Y6S = window.Y6S || {};
       wrap.appendChild(box);
       var acts = el('div', { class: 'tbl-actions' });
       var add = el('button', { class: 'btn btn-sm', type: 'button', html: Y.ui('plus') + '<span>Neden ekle</span>' });
-      add.addEventListener('click', function () { v.whys.push(''); paint(); changed(); });
+      add.addEventListener('click', function () { v.whys.push({ t: '', kanit: '' }); paint(); changed(); });
       var rm = el('button', { class: 'btn btn-sm btn-ghost', type: 'button', text: 'Son satırı kaldır' });
       rm.addEventListener('click', function () {
         if (v.whys.length > 1) { v.whys.pop(); paint(); changed(); }
@@ -331,11 +418,19 @@ window.Y6S = window.Y6S || {};
       acts.appendChild(add); acts.appendChild(rm);
       wrap.appendChild(acts);
 
-      var lab = el('div', { class: 'field-label', style: 'margin-top:16px', text: 'Kök Neden' });
+      var head = el('div', { class: 'why-root-head' });
+      head.appendChild(el('div', { class: 'field-label', style: 'margin:0', text: 'Kök Neden' }));
+      if (f.cnx) {
+        head.appendChild(el('span', { class: 'tiny muted', text: 'CNX sınıfı:' }));
+        head.appendChild(cnxPicker(
+          function () { return v.cnx; },
+          function (val) { v.cnx = val; changed(); }
+        ));
+      }
       var root = el('textarea', { class: 'ctl', rows: '2', placeholder: 'Zincirin sonunda ulaşılan kök neden' });
       root.value = v.root || '';
       root.addEventListener('input', function () { v.root = root.value; changed(); });
-      wrap.appendChild(lab);
+      wrap.appendChild(head);
       wrap.appendChild(root);
       return wrap;
     },
@@ -345,29 +440,111 @@ window.Y6S = window.Y6S || {};
       var cats = f.categories || Y.M6;
       var v = data[f.name];
       if (!v || typeof v !== 'object') v = data[f.name] = {};
-      cats.forEach(function (c) { if (!Array.isArray(v[c.key])) v[c.key] = ['', '', '']; });
+      // Eski kayıtlar düz metin dizisiydi; {t, cnx} biçimine taşı.
+      cats.forEach(function (c) {
+        v[c.key] = Y.normCauseList(v[c.key]);
+        while (v[c.key].length < 3) v[c.key].push({ t: '', cnx: '' });
+      });
 
       var wrap = el('div');
       var grid = el('div', { class: 'fishgrid' });
       var preview = el('div', { class: 'diagram-preview' });
+      var summary = el('div', { class: 'notice fish-summary', style: 'margin-top:12px' });
 
       function refresh() {
         preview.innerHTML = Y.fishboneSVG(cats, v, ctx.effectText ? ctx.effectText() : '');
+        var n = 0, cnt = { C: 0, N: 0, X: 0 };
+        cats.forEach(function (c) {
+          (v[c.key] || []).forEach(function (o) {
+            if (!String(o.t || '').trim()) return;
+            n++;
+            var k = Y.cnxKey(o.cnx);
+            if (k) cnt[k]++;
+          });
+        });
+        summary.innerHTML = '<strong>' + n + '</strong> neden girildi · Sınıflandırılan <strong>' +
+          (cnt.C + cnt.N + cnt.X) + '</strong> · C <strong>' + cnt.C + '</strong> · N <strong>' +
+          cnt.N + '</strong> · X <strong>' + cnt.X + '</strong>' +
+          (cnt.X ? '' : ' — üzerinde çalışılacak <strong>X</strong> nedeni işaretlemeyi unutmayın.');
       }
 
       cats.forEach(function (c) {
         var col = el('div', { class: 'fishcat' });
         col.appendChild(el('div', { class: 'fishcat-head', html:
           '<span class="fishcat-dot" style="background:' + c.color + '"></span><span>' + Y.esc(c.label) + '</span>' }));
-        col.appendChild(listEditor(
-          function () { return v[c.key]; },
-          function (arr) { v[c.key] = arr; changed(); refresh(); },
-          { placeholder: 'Neden…', minRows: 3 }
-        ));
+        var body = el('div', { class: 'fishcat-body' });
+
+        function paint() {
+          body.innerHTML = '';
+          v[c.key].forEach(function (item, i) {
+            var row = el('div', { class: 'causerow' });
+            var inp = el('input', { class: 'ctl', type: 'text', value: item.t || '', placeholder: 'Neden…' });
+            inp.addEventListener('input', function () { item.t = inp.value; changed(); refresh(); });
+            row.appendChild(inp);
+            row.appendChild(cnxPicker(
+              function () { return item.cnx; },
+              function (val) { item.cnx = val; changed(); refresh(); },
+              true
+            ));
+            var del = el('button', { class: 'rowdel', type: 'button', title: 'Satırı sil',
+              'aria-label': 'Satırı sil', html: Y.ui('trash') });
+            del.addEventListener('click', function () {
+              v[c.key].splice(i, 1);
+              paint(); changed(); refresh();
+            });
+            row.appendChild(del);
+            body.appendChild(row);
+          });
+          var add = el('button', { class: 'btn btn-sm btn-ghost', type: 'button', html: Y.ui('plus') + '<span>Ekle</span>' });
+          add.addEventListener('click', function () {
+            v[c.key].push({ t: '', cnx: '' });
+            paint(); changed();
+            var ins = body.querySelectorAll('input');
+            if (ins.length) ins[ins.length - 1].focus();
+          });
+          body.appendChild(add);
+        }
+        paint();
+        col.appendChild(body);
         grid.appendChild(col);
       });
 
       wrap.appendChild(grid);
+
+      if (f.transferTo) {
+        var acts = el('div', { class: 'tbl-actions' });
+        var tr = el('button', { class: 'btn btn-sm', type: 'button',
+          html: Y.ui('down') + '<span>İşaretli nedenleri önceliklendirmeye aktar</span>' });
+        tr.addEventListener('click', function () {
+          if (!Array.isArray(data[f.transferTo])) data[f.transferTo] = [];
+          var target = data[f.transferTo];
+          var have = {};
+          target.forEach(function (r) { have[String(r.neden || '').trim()] = 1; });
+          var added = 0;
+          cats.forEach(function (c) {
+            (v[c.key] || []).forEach(function (o) {
+              var t = String(o.t || '').trim();
+              if (!t || !Y.cnxKey(o.cnx) || have[t]) return;
+              have[t] = 1; added++;
+              target.push({ neden: t, kategori: c.label, cnx: o.cnx });
+            });
+          });
+          // boş kalan tohum satırlarını temizle
+          data[f.transferTo] = target.filter(function (r) {
+            return Object.keys(r).some(function (k) { return String(r[k] || '').trim(); });
+          });
+          if (!added) { Y.toast('Aktarılacak yeni işaretli neden yok.', 'err'); return; }
+          changed();
+          ctx.rerender();
+          Y.toast(added + ' neden önceliklendirme tablosuna aktarıldı.', 'ok');
+        });
+        acts.appendChild(tr);
+        acts.appendChild(el('span', { class: 'muted tiny',
+          text: 'Yalnızca C / N / X ile işaretlenmiş nedenler aktarılır.' }));
+        wrap.appendChild(acts);
+      }
+
+      wrap.appendChild(summary);
       wrap.appendChild(el('div', { class: 'diagram-label', text: 'Diyagram önizleme' }));
       wrap.appendChild(preview);
       refresh();
@@ -405,52 +582,18 @@ window.Y6S = window.Y6S || {};
       return grid;
     },
 
-    /* ---- süreç akışı ---- */
-    flow: function (f, data, changed, ctx) {
-      var cols = [
-        { name: 'adim',    label: 'Adım',      type: 'textarea', width: '28%', placeholder: 'Ne yapılıyor?' },
-        { name: 'tur',     label: 'Tür',       type: 'select',   width: '13%', options: Y.FLOW_TYPES.map(function (t) { return t.label; }) },
-        { name: 'sorumlu', label: 'Sorumlu',   type: 'text',     width: '13%' },
-        { name: 'sure',    label: 'Süre (dk)', type: 'number',   width: '9%' },
-        { name: 'kd',      label: 'Katma Değer', type: 'select', width: '17%', options: Y.VALUE_TYPES.map(function (t) { return t.label; }) },
-        { name: 'girdi',   label: 'Girdi',     type: 'text',     width: '10%' },
-        { name: 'cikti',   label: 'Çıktı',     type: 'text',     width: '10%' }
-      ];
-      var seed = [
-        { adim: 'Başla', tur: 'Başla / Bitir' }, {}, {}, {},
-        { adim: 'Bitir', tur: 'Başla / Bitir' }
-      ];
-      var t = tableEditor({ name: f.name, label: '', columns: cols, seed: seed, addLabel: 'Adım ekle' }, data, function () {
-        changed(); refresh();
-      });
-
-      var wrap = el('div');
-      wrap.appendChild(t.node);
-
-      var sum = el('div', { class: 'notice', style: 'margin-top:12px' });
-      var preview = el('div', { class: 'diagram-preview' });
-
-      function refresh() {
-        var rows = data[f.name] || [];
-        var svg = Y.flowSVG(rows);
-        preview.innerHTML = svg || '<p class="muted tiny" style="padding:20px;text-align:center;margin:0">Adım girildikçe diyagram burada oluşur.</p>';
-        var tot = 0, kd = 0, n = 0;
-        rows.forEach(function (r) {
-          var s = parseFloat(r.sure);
-          if (!isNaN(s)) { tot += s; if (r.kd === 'Katma Değerli') kd += s; }
-          if (String(r.adim || '').trim()) n++;
-        });
-        var oran = tot > 0 ? ((kd / tot) * 100).toFixed(1) : '0.0';
-        sum.innerHTML = '<strong>' + n + '</strong> adım · Toplam süre <strong>' + tot + ' dk</strong> · ' +
-          'Katma değerli <strong>' + kd + ' dk</strong> · Süreç verimliliği <strong>%' + oran + '</strong>';
-      }
-
-      wrap.appendChild(sum);
-      wrap.appendChild(el('div', { class: 'diagram-label', text: 'Akış diyagramı önizleme' }));
-      wrap.appendChild(preview);
-      refresh();
-      ctx.onRefresh(refresh);
-      return wrap;
+    /* ---- kulvarlı proses haritası (sürükle-bırak) ---- */
+    flowmap: function (f, data, changed, ctx) {
+      var map = Y.normFlowmap(data[f.name]);
+      data[f.name] = map;
+      var host = el('div');
+      var api = Y.mountFlowmapEditor(
+        host,
+        function () { return map; },
+        function (next) { data[f.name] = map = next; changed(); }
+      );
+      ctx.onRefresh(function () { api.refresh(); });
+      return host;
     },
 
     /* ---- organizasyon şeması ---- */
@@ -558,6 +701,12 @@ window.Y6S = window.Y6S || {};
       onRefresh: function (fn) { refreshers.push(fn); },
       effectText: function () {
         return data.etki || data.problem || data.baslik || data.proje || '';
+      },
+      /** Alanlar arası veri aktarımından sonra formu baştan çizer. */
+      rerender: function () {
+        var y = window.scrollY;
+        Y.renderForm(root, tpl, data, onChange);
+        window.scrollTo(0, y);
       }
     };
     var changed = function () { onChange(); };
@@ -568,10 +717,10 @@ window.Y6S = window.Y6S || {};
       }
       var maker = FIELDS[f.type] || FIELDS.text;
       var wrapCls = 'field ' + widthClass(
-        ['table', 'pair', 'fivewhy', 'fishbone', 'sipoc', 'flow', 'orgchart'].indexOf(f.type) >= 0 ? 'full' : f.width
+        ['table', 'pair', 'fivewhy', 'fishbone', 'sipoc', 'flowmap', 'orgchart'].indexOf(f.type) >= 0 ? 'full' : f.width
       );
       var box = el('div', { class: wrapCls });
-      if (f.label && ['table', 'pair', 'fishbone', 'sipoc', 'flow', 'orgchart'].indexOf(f.type) < 0) {
+      if (f.label && ['table', 'pair', 'fishbone', 'sipoc', 'flowmap', 'orgchart'].indexOf(f.type) < 0) {
         box.appendChild(labelFor(f));
       }
       box.appendChild(maker(f, data, changed, ctx));
@@ -611,6 +760,51 @@ window.Y6S = window.Y6S || {};
     });
 
     return { refreshAll: function () { refreshers.forEach(function (fn) { fn(); }); } };
+  };
+
+  /** Bir alanın doldurulmuş sayılıp sayılmayacağı. */
+  function hasContent(f, data) {
+    var v = data[f.name];
+    switch (f.type) {
+      case 'table':
+        return (v || []).some(function (r) {
+          return Object.keys(r || {}).some(function (k) { return String(r[k] || '').trim(); });
+        });
+      case 'pair':
+        return !!(v && ((v.before && (v.before.img || String(v.before.desc || '').trim())) ||
+                        (v.after && (v.after.img || String(v.after.desc || '').trim()))));
+      case 'fivewhy':
+        return !!(v && ((v.whys || []).some(function (w) {
+          return String((w && typeof w === 'object' ? w.t : w) || '').trim();
+        }) || String(v.root || '').trim()));
+      case 'fishbone':
+        return !!v && Object.keys(v).some(function (k) {
+          return Y.normCauseList(v[k]).some(function (o) { return o.t.trim(); });
+        });
+      case 'sipoc':
+        return !!v && Object.keys(v).some(function (k) {
+          return (v[k] || []).some(function (x) { return String(x || '').trim(); });
+        });
+      case 'flowmap':
+        return Y.normFlowmap(v).nodes.some(function (n) { return String(n.metin || '').trim(); });
+      case 'orgchart':
+        return (v || []).some(function (n) { return String((n && (n.ad || n.unvan)) || '').trim(); });
+      default:
+        return !!String(v == null ? '' : v).trim();
+    }
+  }
+
+  /** Formun doluluk oranını hesaplar. */
+  Y.formProgress = function (tpl, data) {
+    var total = 0, done = 0;
+    function walk(f) {
+      if (!f || f.type === 'static' || !f.name) return;
+      total++;
+      if (hasContent(f, data)) done++;
+    }
+    (tpl.meta || []).forEach(walk);
+    (tpl.sections || []).forEach(function (s) { (s.fields || []).forEach(walk); });
+    return { total: total, done: done, pct: total ? Math.round((done / total) * 100) : 0 };
   };
 
 })(window.Y6S);

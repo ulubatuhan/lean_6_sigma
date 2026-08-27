@@ -14,7 +14,7 @@ olduğu gibi çalışır.
 | # | Form | Kod | DMAIC | Sayfa |
 |---|------|-----|-------|-------|
 | 1 | Öncesi / Sonrası Kaizen | `FR-KZN-01` | İyileştir | A4 dikey |
-| 2 | Proses Haritası | `FR-PRS-01` | Ölç | A4 yatay |
+| 2 | Proses Haritası (kulvarlı, sürükle-bırak) | `FR-PRS-01` | Ölç | A4 yatay |
 | 3 | Beyin Fırtınası Formu | `FR-BYF-01` | Tanımla | A4 dikey |
 | 4 | Kök Neden Analizi Formu | `FR-KNA-01` | Analiz Et | A4 dikey |
 | 5 | SIPOC Diyagramı | `FR-SPC-01` | Tanımla | A4 yatay |
@@ -25,15 +25,49 @@ olduğu gibi çalışır.
 | 10 | A3 Kaizen Formu | `FR-A3-01` | İyileştir | A4 yatay |
 | 11 | Aksiyon Planı (5N1K) | `FR-AKS-01` | İyileştir | A4 yatay |
 
-Balık kılçığı, proses haritası ve organizasyon şemasında **diyagram girdiğiniz
-veriden otomatik çizilir** ve çıktıya aynen aktarılır.
+Balık kılçığı ve organizasyon şemasında **diyagram girdiğiniz veriden otomatik
+çizilir**; proses haritası ise **tam sürükle-bırak bir tuvalde** hazırlanır. Tüm
+diyagramlar PDF ve Word çıktısına aynen aktarılır.
+
+### Proses haritası tuvali
+
+- **Kulvarlar (swimlane):** her kulvar bir sorumlu/departmandır. Kutuyu hangi
+  kulvara bırakırsanız sorumlusu o olur.
+- **Dallanma:** kutunun kenarındaki bağlantı noktasından başka bir kutuya
+  sürükleyerek ok çizin. Karar kutusundan çıkan ilk iki oka otomatik olarak
+  **Evet / Hayır** etiketi verilir; istediğiniz metni yazabilirsiniz. Geri
+  dönüş (döngü) okları kutuların altından dolaştırılır.
+- **8 sembol:** Başla/Bitir, İşlem, Karar, Kontrol, Bekleme, Taşıma, Depolama,
+  Doküman.
+- **Otomatik diz:** kutuları ok akışına göre soldan sağa yeniden dizer.
+- Boş alana **çift tıklayarak** hızlıca işlem kutusu eklersiniz; seçili öğeyi
+  `Delete` tuşu siler.
+- Süre ve katma değer girildikçe **süreç verimliliği** anlık hesaplanır.
+
+### CNX sınıflandırması
+
+Kök neden ve süreç formlarında her neden/girdi **C / N / X** ile işaretlenir:
+
+| | Anlamı | Ne yapılır |
+|---|---|---|
+| **C** | Kontrol Edilen | Prosedür/talimatla sabitlenir |
+| **N** | Gürültü (Noise) | Kontrol edilemez; etkisi izlenir |
+| **X** | Deneysel / Kritik | Üzerinde deney yapılır, optimum aranır |
+
+Sınıflandırma balık kılçığı diyagramında ve süreç haritası kutularında renkli
+rozet olarak görünür. Her formda bir **CNX Sonuçları** bölümü, sınıflandırmayı
+aksiyona bağlamanızı ister. Balık kılçığındaki işaretli nedenleri tek tuşla
+önceliklendirme tablosuna aktarabilirsiniz.
 
 ---
 
 ## Kullanım
 
-1. Ana sayfada açılır listeden bir form seçin, **Başla**'ya basın.
-2. Formu doldurun — her değişiklik ~0,7 sn içinde otomatik kaydedilir.
+1. Ana sayfada açılır listeden bir form seçin (veya arama kutusunu kullanın),
+   **Başla**'ya basın.
+2. Formu doldurun — her değişiklik ~0,7 sn içinde otomatik kaydedilir. Üst
+   çubuktaki çubuk formun doluluk oranını gösterir. Boş bırakılan yeni belgeler
+   kaydedilmez, kayıt listeniz kirlenmez.
 3. **Önizleme** ile A4 çıktının nasıl görüneceğini kontrol edin.
 4. **PDF** düğmesi yazdırma penceresini açar; hedef olarak *"PDF olarak kaydet"*
    seçin. Sayfa boyutu ve yönü şablona göre otomatik ayarlanır.
@@ -94,7 +128,8 @@ assets/css/main.css     Arayüz stilleri (açık/koyu tema)
 assets/css/print.css    A4 çıktı belgesi ve @media print
 assets/js/templates.js  Tüm form şemaları  ← yeni form buraya
 assets/js/core.js       Yardımcılar, modal, bildirim, localStorage katmanı
-assets/js/diagrams.js   SVG üreticiler (balık kılçığı, akış, organizasyon)
+assets/js/diagrams.js   SVG üreticiler (balık kılçığı, organizasyon şeması)
+assets/js/flowmap.js    Kulvarlı proses haritası: veri modeli, çizim, editör
 assets/js/render.js     Şema → etkileşimli DOM
 assets/js/printdoc.js   Şema + veri → A4 çıktı belgesi
 assets/js/export.js     PDF (yazdırma), Word (MHTML), JSON
@@ -144,12 +179,13 @@ Ana sayfa, form sayfası ve tüm çıktı biçimleri şemayı otomatik olarak i�
 | Tip | Açıklama |
 |-----|----------|
 | `text` `textarea` `date` `number` `select` | Temel alanlar (`width`: `full`, `two-thirds`, `half`, `third`, `quarter`) |
-| `table` | Satır eklenip silinebilen tablo (`columns`, `seed`) |
+| `table` | Satır eklenip silinebilen tablo (`columns`, `seed`, `sortBy`) |
+| | Kolon seçenekleri: `cnx: true` (C/N/X seçici), `formula: 'a*b'` (otomatik hesap) |
 | `pair` | Öncesi/sonrası görsel + açıklama |
-| `fivewhy` | 5 Neden zinciri + kök neden |
-| `fishbone` | 6M neden girişi + canlı Ishikawa diyagramı |
+| `fivewhy` | 5 Neden zinciri + kök neden (`evidence` kanıt alanı, `cnx` sınıfı) |
+| `fishbone` | 6M neden girişi + CNX + canlı Ishikawa diyagramı (`transferTo` ile aktarım) |
 | `sipoc` | Beş kolonlu SIPOC girişi |
-| `flow` | Süreç adımları tablosu + akış diyagramı + verimlilik özeti |
+| `flowmap` | Kulvarlı sürükle-bırak süreç haritası (dallanma, CNX, verimlilik) |
 | `orgchart` | Kişi/yönetici girişi + hiyerarşi şeması |
 
 ---

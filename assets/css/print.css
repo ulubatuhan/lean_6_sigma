@@ -158,6 +158,28 @@ table.p-tbl td.d { white-space: nowrap; }
 .p-diagram { text-align: center; }
 .p-diagram svg, .p-diagram img { max-width: 100%; height: auto; }
 
+/* ---------- CNX ---------- */
+
+.p-cnx {
+  display: inline-block; min-width: 4.4mm;
+  padding: .2mm 1mm; border-radius: 2.2mm;
+  color: #fff; font-size: 7.6pt; font-weight: 700; text-align: center;
+  line-height: 1.35;
+}
+.p-static {
+  font-size: 7.8pt; color: var(--p-soft);
+  border: .5pt dashed var(--p-line); border-radius: 1mm;
+  padding: 1.6mm 2.2mm; margin-bottom: 2.6mm;
+}
+.p-static .cnx-legend { display: block; }
+.p-static .cnx-legend-title { display: none; }
+.p-static .cnx-item { display: inline-block; margin-right: 4mm; }
+.p-static .cnx-item b {
+  display: inline-block; min-width: 3.6mm; text-align: center;
+  color: #fff; border-radius: 2mm; padding: 0 .8mm; font-size: 7.4pt;
+}
+.p-static .cnx-item strong { color: var(--p-ink); }
+
 /* ---------- 5 Neden ---------- */
 
 table.p-why { width: 100%; border-collapse: collapse; font-size: 8.8pt; }
@@ -168,6 +190,10 @@ table.p-why td.q {
 }
 table.p-why tr.root td { background: #fdeceb; }
 table.p-why tr.root td.q { color: #b3261e; }
+table.p-why .why-ev {
+  margin-top: .8mm; font-size: 7.8pt; color: var(--p-soft);
+  border-left: .8pt solid var(--p-line); padding-left: 1.6mm;
+}
 
 /* ---------- A3 ---------- */
 

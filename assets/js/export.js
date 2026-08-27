@@ -171,6 +171,13 @@ window.Y6S = window.Y6S || {};
     '.p-pair .cap{font-size:8.5pt;}',
     '.p-diagram{text-align:center;margin:6pt 0;}',
     '.p-foot{margin-top:8pt;padding-top:3pt;border-top:0.75pt solid #b9c3d1;font-size:7.5pt;color:#55637a;}',
+    '.p-cnx{display:inline-block;padding:0 3pt;border-radius:7pt;color:#fff;font-size:7.5pt;font-weight:bold;}',
+    '.p-static{font-size:7.8pt;color:#55637a;border:0.5pt dashed #b9c3d1;padding:4pt 5pt;margin-bottom:6pt;}',
+    '.p-static .cnx-legend-title{display:none;}',
+    '.p-static .cnx-item{display:inline-block;margin-right:10pt;}',
+    '.p-static .cnx-item b{display:inline-block;color:#fff;border-radius:6pt;padding:0 3pt;font-size:7.4pt;}',
+    '.p-static .cnx-item strong{color:#16202e;}',
+    'table.p-why .why-ev{margin-top:2pt;font-size:7.8pt;color:#55637a;border-left:0.75pt solid #b9c3d1;padding-left:4pt;}',
     '.diagram-label{display:none;}'
   ].join('\n');
 

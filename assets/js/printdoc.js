@@ -27,6 +27,15 @@ window.Y6S = window.Y6S || {};
     return ['text', 'textarea', 'date', 'number', 'select'].indexOf(f.type) >= 0;
   }
 
+  /** CNX değerini renkli harf rozeti olarak basar. */
+  function cnxBadge(v, withLabel) {
+    var k = Y.cnxKey(v);
+    if (!k) return '&nbsp;';
+    var c = Y.cnxColor(k);
+    return '<span class="p-cnx" style="background:' + c + '">' + k + '</span>' +
+      (withLabel ? ' ' + E(String(v).replace(/^\s*[CNX]\s*[—-]\s*/, '')) : '');
+  }
+
   function rowHasData(row, cols) {
     for (var i = 0; i < cols.length; i++) {
       if (String(row[cols[i].name] || '').trim()) return true;
@@ -55,6 +64,7 @@ window.Y6S = window.Y6S || {};
         h += '<tr><td class="n">' + (i + 1) + '</td>';
         cols.forEach(function (c) {
           var cv = r[c.name];
+          if (c.cnx) { h += '<td class="d">' + cnxBadge(cv) + '</td>'; return; }
           if (c.type === 'date') cv = Y.fmtDate(cv);
           h += '<td' + (c.type === 'date' ? ' class="d"' : '') + '>' + E(cv == null ? '' : cv) + '</td>';
         });
@@ -79,14 +89,22 @@ window.Y6S = window.Y6S || {};
 
   function fiveWhyBlock(f, data) {
     var v = data[f.name] || {};
-    var whys = v.whys || [];
+    var whys = (v.whys || []).map(function (w) {
+      return (w && typeof w === 'object') ? w : { t: String(w == null ? '' : w), kanit: '' };
+    });
     var h = '';
     if (f.label) h += '<div class="lab" style="font-size:7.6pt;font-weight:700;text-transform:uppercase;color:#55637a;margin-bottom:1mm">' + E(f.label) + '</div>';
     h += '<table class="p-why">';
     whys.forEach(function (w, i) {
-      h += '<tr><td class="q">' + (i + 1) + '. Neden?</td><td>' + (String(w || '').trim() ? E(w) : '&nbsp;') + '</td></tr>';
+      h += '<tr><td class="q">' + (i + 1) + '. Neden?</td><td>' +
+        (String(w.t || '').trim() ? E(w.t) : '&nbsp;') +
+        (f.evidence && String(w.kanit || '').trim()
+          ? '<div class="why-ev">Kanıt: ' + E(w.kanit) + '</div>' : '') +
+        '</td></tr>';
     });
-    h += '<tr class="root"><td class="q">Kök Neden</td><td>' + (String(v.root || '').trim() ? E(v.root) : '&nbsp;') + '</td></tr>';
+    h += '<tr class="root"><td class="q">Kök Neden</td><td>' +
+      (f.cnx ? cnxBadge(v.cnx, true) + (Y.cnxKey(v.cnx) ? '<br>' : '') : '') +
+      (String(v.root || '').trim() ? E(v.root) : '&nbsp;') + '</td></tr>';
     return h + '</table>';
   }
 
@@ -98,8 +116,11 @@ window.Y6S = window.Y6S || {};
     cats.forEach(function (c) { h += '<th>' + E(c.label) + '</th>'; });
     h += '</tr></thead><tbody><tr>';
     cats.forEach(function (c) {
-      var list = (v[c.key] || []).filter(function (s) { return String(s || '').trim(); });
-      h += '<td>' + (list.length ? list.map(function (s) { return '• ' + E(s); }).join('<br>') : '&nbsp;') + '</td>';
+      var list = Y.normCauseList(v[c.key]).filter(function (o) { return o.t.trim(); });
+      h += '<td>' + (list.length ? list.map(function (o) {
+        var k = Y.cnxKey(o.cnx);
+        return (k ? cnxBadge(o.cnx) + ' ' : '• ') + E(o.t);
+      }).join('<br>') : '&nbsp;') + '</td>';
     });
     return h + '</tr></tbody></table>';
   }
@@ -122,31 +143,51 @@ window.Y6S = window.Y6S || {};
     return h + '</tr></tbody></table>';
   }
 
-  function flowBlock(f, data) {
-    var cols = [
-      { name: 'adim', label: 'Adım', width: '26%' },
-      { name: 'tur', label: 'Tür', width: '13%' },
-      { name: 'sorumlu', label: 'Sorumlu', width: '14%' },
-      { name: 'sure', label: 'Süre (dk)', width: '9%' },
-      { name: 'kd', label: 'Katma Değer', width: '18%' },
-      { name: 'girdi', label: 'Girdi', width: '10%' },
-      { name: 'cikti', label: 'Çıktı', width: '10%' }
-    ];
-    var rows = data[f.name] || [];
-    var tot = 0, kd = 0;
-    rows.forEach(function (r) {
-      var s = parseFloat(r.sure);
-      if (!isNaN(s)) { tot += s; if (r.kd === 'Katma Değerli') kd += s; }
-    });
-    var oran = tot > 0 ? ((kd / tot) * 100).toFixed(1) : '0.0';
+  function flowmapBlock(f, data) {
+    var map = Y.normFlowmap(data[f.name]);
+    if (!map.nodes.length) return '<div class="p-field"><div class="val empty">Henüz süreç adımı girilmemiş.</div></div>';
 
-    var h = tableBlock({ name: f.name, columns: cols }, data);
-    h += '<table class="p-meta" style="margin-top:2.5mm"><tr>' +
-      '<td class="k">Toplam Süre</td><td>' + tot + ' dk</td>' +
-      '<td class="k">Katma Değerli Süre</td><td>' + kd + ' dk</td>' +
-      '<td class="k">Süreç Verimliliği</td><td>%' + oran + '</td></tr></table>';
-    var svg = Y.flowSVG(rows);
-    if (svg) h += '<div class="p-diagram p-nobreak" style="margin-top:3mm">' + svg + '</div>';
+    var svg = Y.flowmapSVGString(map);
+    var h = svg ? '<div class="p-diagram p-nobreak">' + svg + '</div>' : '';
+
+    var m = Y.flowmapMetrics(map);
+    h += '<table class="p-meta" style="margin-top:3mm"><tr>' +
+      '<td class="k">Adım</td><td>' + m.steps + '</td>' +
+      '<td class="k">Karar Noktası</td><td>' + m.decisions + '</td>' +
+      '<td class="k">Toplam Süre</td><td>' + m.total + ' dk</td>' +
+      '</tr><tr>' +
+      '<td class="k">Katma Değerli</td><td>' + m.va + ' dk</td>' +
+      '<td class="k">İsraf</td><td>' + m.waste + ' dk</td>' +
+      '<td class="k">Süreç Verimliliği</td><td>%' + m.eff.toFixed(1) + '</td>' +
+      '</tr></table>';
+
+    // Adım tablosu: dallanmalar "Sonraki adım" kolonunda etiketleriyle listelenir
+    var laneAd = {};
+    map.lanes.forEach(function (l) { laneAd[l.id] = l.ad || 'Kulvar'; });
+    var order = Y.flowmapOrder(map);
+    var num = {};
+    order.forEach(function (n, i) { num[n.id] = i + 1; });
+
+    h += '<table class="p-tbl" style="margin-top:3mm">' +
+      '<colgroup><col style="width:7mm"><col style="width:24%"><col style="width:14%"><col style="width:12%">' +
+      '<col style="width:8%"><col style="width:14%"><col style="width:7%"><col style="width:21%"></colgroup>' +
+      '<thead><tr><th>#</th><th>Adım</th><th>Kulvar / Sorumlu</th><th>Tür</th><th>Süre</th>' +
+      '<th>Katma Değer</th><th>CNX</th><th>Sonraki Adım</th></tr></thead><tbody>';
+    order.forEach(function (n, i) {
+      var outs = map.edges.filter(function (e) { return e.from === n.id; }).map(function (e) {
+        var lbl = String(e.etiket || '').trim();
+        return (lbl ? lbl + ' → ' : '→ ') + (num[e.to] != null ? '#' + num[e.to] : '?');
+      });
+      h += '<tr><td class="n">' + (i + 1) + '</td>' +
+        '<td>' + E(n.metin || '') + '</td>' +
+        '<td>' + E(laneAd[n.lane] || '') + '</td>' +
+        '<td>' + E(n.tur || '') + '</td>' +
+        '<td class="d">' + (String(n.sure || '').trim() ? E(n.sure) + ' dk' : '') + '</td>' +
+        '<td>' + E(n.kd || '') + '</td>' +
+        '<td class="d">' + cnxBadge(n.cnx) + '</td>' +
+        '<td>' + (outs.length ? E(outs.join(' · ')) : 'Süreç sonu') + '</td></tr>';
+    });
+    h += '</tbody></table>';
     return h;
   }
 
@@ -177,7 +218,11 @@ window.Y6S = window.Y6S || {};
       buf = [];
     }
     (fields || []).forEach(function (f) {
-      if (f.type === 'static') { flush(); h += '<div class="p-field">' + E(f.text || '') + '</div>'; return; }
+      if (f.type === 'static') {
+        flush();
+        h += f.print === false ? '' : '<div class="p-static">' + (f.html || E(f.text || '')) + '</div>';
+        return;
+      }
       if (isSimple(f)) { buf.push(fieldBlock(f, data)); return; }
       flush();
       switch (f.type) {
@@ -186,7 +231,7 @@ window.Y6S = window.Y6S || {};
         case 'fivewhy':  h += fiveWhyBlock(f, data); break;
         case 'fishbone': h += fishboneBlock(f, data, effect); break;
         case 'sipoc':    h += sipocBlock(f, data); break;
-        case 'flow':     h += flowBlock(f, data); break;
+        case 'flowmap':  h += flowmapBlock(f, data); break;
         case 'orgchart': h += orgBlock(f, data); break;
         default:         h += fieldBlock(f, data);
       }

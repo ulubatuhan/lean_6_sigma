@@ -34,6 +34,18 @@ window.Y6S = window.Y6S || {};
     return lines.length ? lines : [''];
   }
 
+  Y.wrapText = wrap;
+
+  /** Neden kaydını {t, cnx} biçimine getirir (eski kayıtlar düz metindi). */
+  Y.normCause = function (v) {
+    if (v && typeof v === 'object') return { t: String(v.t || ''), cnx: String(v.cnx || '') };
+    return { t: String(v == null ? '' : v), cnx: '' };
+  };
+
+  Y.normCauseList = function (arr) {
+    return (Array.isArray(arr) ? arr : []).map(Y.normCause);
+  };
+
   function tspans(lines, x, y, lh) {
     return lines.map(function (l, i) {
       return '<tspan x="' + x + '" y="' + (y + i * lh) + '">' + E(l) + '</tspan>';
@@ -56,7 +68,7 @@ window.Y6S = window.Y6S || {};
     data = data || {};
     var cats = categories || Y.M6;
     var lists = cats.map(function (c) {
-      return (data[c.key] || []).filter(function (s) { return String(s || '').trim(); });
+      return Y.normCauseList(data[c.key]).filter(function (o) { return o.t.trim(); });
     });
     var maxN = lists.reduce(function (m, l) { return Math.max(m, l.length); }, 0);
 
@@ -104,114 +116,21 @@ window.Y6S = window.Y6S || {};
 
       // Nedenler
       lists[i].forEach(function (cause, j) {
-        var t = (j + 1) / (maxN + 1.2);
         var py = cy + dir * (28 + j * 20);
         var px = ax - skew * ((py - cy) * dir / boneH);
         s += '<line x1="' + px.toFixed(1) + '" y1="' + py + '" x2="' + (px + 13).toFixed(1) + '" y2="' + py +
           '" stroke="' + c.color + '" stroke-width="1.4"/>';
-        var txt = wrap(cause, 190, 11.5, 1)[0];
-        s += '<text x="' + (px + 17).toFixed(1) + '" y="' + (py + 4) + '" font-size="11.5" fill="#16202e">' + E(txt) + '</text>';
-        void t;
+        var tx = px + 17;
+        var ck = Y.cnxKey ? Y.cnxKey(cause.cnx) : '';
+        if (ck) {
+          s += '<circle cx="' + (tx + 6).toFixed(1) + '" cy="' + (py - 3.5) + '" r="6.5" fill="' + Y.cnxColor(ck) + '"/>' +
+            '<text x="' + (tx + 6).toFixed(1) + '" y="' + (py + 0.5) + '" text-anchor="middle" font-size="8.5" ' +
+            'font-weight="700" fill="#ffffff">' + ck + '</text>';
+          tx += 17;
+        }
+        var txt = wrap(cause.t, 190, 11.5, 1)[0];
+        s += '<text x="' + tx.toFixed(1) + '" y="' + (py + 4) + '" font-size="11.5" fill="#16202e">' + E(txt) + '</text>';
       });
-    });
-
-    return s + '</svg>';
-  };
-
-  /* ==========================================================================
-     Süreç akış diyagramı
-     ========================================================================== */
-
-  function flowShape(shape, x, y, w, h, fill, stroke) {
-    var cx = x + w / 2, cy = y + h / 2;
-    var a = 'fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.6"';
-    switch (shape) {
-      case 'terminator':
-        return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + (h / 2) + '" ' + a + '/>';
-      case 'decision':
-        return '<polygon points="' + cx + ',' + y + ' ' + (x + w) + ',' + cy + ' ' + cx + ',' + (y + h) + ' ' + x + ',' + cy + '" ' + a + '/>';
-      case 'delay':
-        return '<path d="M' + x + ' ' + y + ' H' + (x + w - h / 2) + ' A' + (h / 2) + ' ' + (h / 2) + ' 0 0 1 ' +
-          (x + w - h / 2) + ' ' + (y + h) + ' H' + x + ' Z" ' + a + '/>';
-      case 'transport':
-        return '<polygon points="' + x + ',' + y + ' ' + (x + w - 22) + ',' + y + ' ' + (x + w) + ',' + cy + ' ' +
-          (x + w - 22) + ',' + (y + h) + ' ' + x + ',' + (y + h) + '" ' + a + '/>';
-      case 'storage':
-        return '<polygon points="' + x + ',' + y + ' ' + (x + w) + ',' + y + ' ' + cx + ',' + (y + h) + '" ' + a + '/>';
-      case 'inspection':
-        return '<polygon points="' + (x + 20) + ',' + y + ' ' + (x + w - 20) + ',' + y + ' ' + (x + w) + ',' + cy + ' ' +
-          (x + w - 20) + ',' + (y + h) + ' ' + (x + 20) + ',' + (y + h) + ' ' + x + ',' + cy + '" ' + a + '/>';
-      case 'document':
-        return '<path d="M' + x + ' ' + y + ' H' + (x + w) + ' V' + (y + h - 9) +
-          ' q' + (-w / 4) + ' 12 ' + (-w / 2) + ' 0 q' + (-w / 4) + ' -12 ' + (-w / 2) + ' 0 Z" ' + a + '/>';
-      default:
-        return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" ' + a + '/>';
-    }
-  }
-
-  function shapeFor(label) {
-    for (var i = 0; i < Y.FLOW_TYPES.length; i++) {
-      if (Y.FLOW_TYPES[i].label === label) return Y.FLOW_TYPES[i].shape;
-    }
-    return 'process';
-  }
-
-  function valueColor(label) {
-    for (var i = 0; i < Y.VALUE_TYPES.length; i++) {
-      if (Y.VALUE_TYPES[i].label === label) return Y.VALUE_TYPES[i].color;
-    }
-    return '#8a94a6';
-  }
-
-  Y.flowSVG = function (rows) {
-    rows = (rows || []).filter(function (r) {
-      return r && (String(r.adim || '').trim() || String(r.sorumlu || '').trim());
-    });
-    if (!rows.length) return null;
-
-    var W = 900, boxW = 300, boxH = 56, gap = 40;
-    var left = 240;
-    var H = 28 + rows.length * (boxH + gap) + 12;
-    var s = open(W, H);
-
-    rows.forEach(function (r, i) {
-      var y = 28 + i * (boxH + gap);
-      var shape = shapeFor(r.tur);
-      var vc = valueColor(r.kd);
-
-      // Bağlantı oku
-      if (i > 0) {
-        var py = y - gap;
-        s += '<line x1="' + (left + boxW / 2) + '" y1="' + py + '" x2="' + (left + boxW / 2) + '" y2="' + (y - 9) +
-          '" stroke="#8a94a6" stroke-width="1.6"/>';
-        s += '<polygon points="' + (left + boxW / 2 - 5) + ',' + (y - 9) + ' ' + (left + boxW / 2 + 5) + ',' + (y - 9) +
-          ' ' + (left + boxW / 2) + ',' + y + '" fill="#8a94a6"/>';
-      }
-
-      // Sıra numarası
-      s += '<circle cx="' + (left - 26) + '" cy="' + (y + boxH / 2) + '" r="12" fill="#eceff4" stroke="#b9c3d1"/>';
-      s += '<text x="' + (left - 26) + '" y="' + (y + boxH / 2 + 4) + '" text-anchor="middle" font-size="11" ' +
-        'font-weight="700" fill="#55637a">' + (i + 1) + '</text>';
-
-      // Katma değer şeridi
-      s += '<rect x="' + (left - 8) + '" y="' + y + '" width="5" height="' + boxH + '" rx="2.5" fill="' + vc + '"/>';
-
-      // Şekil
-      s += flowShape(shape, left, y, boxW, boxH, '#f4f7fa', '#0e4d64');
-
-      var lines = wrap(r.adim, boxW - 40, 12, 2);
-      var ty = y + boxH / 2 - (lines.length - 1) * 7 + 4;
-      s += '<text x="' + (left + boxW / 2) + '" y="' + ty + '" text-anchor="middle" font-size="12" fill="#16202e">' +
-        tspans(lines, left + boxW / 2, ty, 14) + '</text>';
-
-      // Sağ bilgi
-      var info = [];
-      if (r.sorumlu) info.push(String(r.sorumlu));
-      if (r.sure) info.push(String(r.sure) + ' dk');
-      if (r.tur) info.push(String(r.tur));
-      var iy = y + 16;
-      s += '<text x="' + (left + boxW + 18) + '" y="' + iy + '" font-size="11" fill="#55637a">' +
-        tspans(info.length ? info : [''], left + boxW + 18, iy, 15) + '</text>';
     });
 
     return s + '</svg>';

@@ -62,9 +62,20 @@
   var dot = document.getElementById('savedot');
   var saveText = document.getElementById('save-text');
 
+  var progress = Y.el('span', { class: 'progress-chip',
+    html: '<span class="progress-bar"><i style="width:0%"></i></span><span class="progress-txt"></span>' });
+  document.querySelector('.doc-sub').appendChild(progress);
+
   function setState(kind, text) {
     dot.className = 'savedot' + (kind ? ' ' + kind : '');
     saveText.textContent = text;
+  }
+
+  function paintProgress() {
+    var p = Y.formProgress(tpl, rec.data);
+    progress.querySelector('i').style.width = p.pct + '%';
+    progress.querySelector('.progress-txt').textContent = '%' + p.pct + ' dolu (' + p.done + '/' + p.total + ')';
+    progress.title = 'Doldurulan alan: ' + p.done + ' / ' + p.total;
   }
 
   var actions = document.getElementById('toolbar-actions');
@@ -104,10 +115,13 @@
 
   var autosave = Y.debounce(function () { doSave(true); }, 700);
 
+  var paintProgressSoon = Y.debounce(paintProgress, 250);
+
   function onChange() {
     dirty = true;
     setState('pending', 'Kaydediliyor…');
     autosave();
+    paintProgressSoon();
   }
 
   titleInput.addEventListener('input', onChange);
@@ -178,6 +192,7 @@
           rec.data = { tarih: Y.todayISO() };
           form = Y.renderForm(document.getElementById('form-root'), tpl, rec.data, onChange);
           doSave(true);
+          paintProgress();
           Y.toast('Form temizlendi.');
         });
       }));
@@ -224,7 +239,10 @@
   if (recId) {
     setState('', 'Kaydedildi · ' + Y.fmtWhen(rec.updatedAt));
   } else {
-    doSave(true);
+    // Boş kayıtla listeyi kirletmemek için ilk değişikliğe kadar yazmıyoruz.
+    setState('pending', storageOK ? 'Yeni belge — ilk yazdığınızda kaydedilir'
+                                  : 'Tarayıcı belleği kapalı — kaydedilmiyor');
   }
+  paintProgress();
 
 })(window.Y6S);

@@ -51,10 +51,26 @@
     phaseFilter.appendChild(el('option', { value: pk, text: Y.PHASES[pk].label + ' (' + Y.PHASES[pk].full + ')' }));
   });
 
+  var search = document.getElementById('tpl-search');
+
+  function norm(s) {
+    var map = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u', 'İ': 'i' };
+    return String(s || '').replace(/[çğıöşüİ]/gi, function (c) { return map[c.toLowerCase()] || c; }).toLowerCase();
+  }
+
   function paintGrid() {
     var f = phaseFilter.value;
-    var list = Y.TEMPLATES.filter(function (t) { return !f || t.phase === f; });
+    var q = norm(search.value.trim());
+    var list = Y.TEMPLATES.filter(function (t) {
+      if (f && t.phase !== f) return false;
+      if (!q) return true;
+      return norm(t.name + ' ' + t.desc + ' ' + t.code + ' ' + (t.tags || '')).indexOf(q) >= 0;
+    });
     grid.innerHTML = '';
+    if (!list.length) {
+      grid.appendChild(el('div', { class: 'empty', style: 'grid-column:1/-1',
+        text: 'Aramanızla eşleşen şablon yok.' }));
+    }
     list.forEach(function (t) {
       var a = el('a', { class: 'tcard', href: 'form.html?t=' + encodeURIComponent(t.id) });
       a.appendChild(el('div', { class: 'tcard-top' }, [
@@ -71,6 +87,7 @@
     document.getElementById('tpl-count').textContent = list.length + ' şablon';
   }
   phaseFilter.addEventListener('change', paintGrid);
+  search.addEventListener('input', paintGrid);
   paintGrid();
 
   /* ---------------------------------------------------------------- kayıtlar */

@@ -192,6 +192,20 @@ table.p-tbl td.d { white-space: nowrap; }
 }
 .p-static .cnx-item strong { color: var(--p-ink); }
 
+/* ---------- İşaret kutucukları ---------- */
+
+table.p-checks { width: 100%; border-collapse: collapse; font-size: 8.6pt; }
+table.p-checks td {
+  border: .6pt solid var(--p-line);
+  padding: 1.4mm 2mm; vertical-align: middle;
+}
+table.p-checks td.p-chk .bx {
+  display: inline-block; width: 3.4mm; height: 3.4mm;
+  border: .7pt solid var(--p-ink); margin-right: 2mm;
+  text-align: center; line-height: 3.1mm; font-weight: 700;
+  vertical-align: -.4mm;
+}
+
 /* ---------- 5 Neden ---------- */
 
 table.p-why { width: 100%; border-collapse: collapse; font-size: 8.8pt; }

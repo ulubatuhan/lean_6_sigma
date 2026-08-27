@@ -297,6 +297,28 @@ window.Y6S = window.Y6S || {};
       return n;
     },
 
+    /* ---- çoklu işaret kutusu (resmî formlardaki onay kutucukları) ---- */
+    checks: function (f, data, changed) {
+      var sel = data[f.name];
+      if (!Array.isArray(sel)) sel = data[f.name] = [];
+      var box = el('div', { class: 'checks' });
+      (f.options || []).forEach(function (o) {
+        var lab = el('label', { class: 'check' });
+        var cb = el('input', { type: 'checkbox' });
+        cb.checked = sel.indexOf(o) >= 0;
+        cb.addEventListener('change', function () {
+          var i = sel.indexOf(o);
+          if (cb.checked && i < 0) sel.push(o);
+          else if (!cb.checked && i >= 0) sel.splice(i, 1);
+          changed();
+        });
+        lab.appendChild(cb);
+        lab.appendChild(el('span', { text: o }));
+        box.appendChild(lab);
+      });
+      return box;
+    },
+
     /* ---- öncesi / sonrası ---- */
     pair: function (f, data, changed) {
       var v = data[f.name];
@@ -789,6 +811,8 @@ window.Y6S = window.Y6S || {};
         return Y.normFlowmap(v).nodes.some(function (n) { return String(n.metin || '').trim(); });
       case 'orgchart':
         return (v || []).some(function (n) { return String((n && (n.ad || n.unvan)) || '').trim(); });
+      case 'checks':
+        return Array.isArray(v) && v.length > 0;
       default:
         return !!String(v == null ? '' : v).trim();
     }

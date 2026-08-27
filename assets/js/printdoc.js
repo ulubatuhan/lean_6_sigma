@@ -233,11 +233,31 @@ window.Y6S = window.Y6S || {};
         case 'sipoc':    h += sipocBlock(f, data); break;
         case 'flowmap':  h += flowmapBlock(f, data); break;
         case 'orgchart': h += orgBlock(f, data); break;
+        case 'checks':   h += checksBlock(f, data); break;
         default:         h += fieldBlock(f, data);
       }
     });
     flush();
     return h;
+  }
+
+  /** Resmî formlardaki işaretli kutucuk listesi. */
+  function checksBlock(f, data) {
+    var sel = data[f.name];
+    if (!Array.isArray(sel)) sel = [];
+    var cells = (f.options || []).map(function (o) {
+      var on = sel.indexOf(o) >= 0;
+      return '<td class="p-chk"><span class="bx">' + (on ? '×' : '') + '</span>' + E(o) + '</td>';
+    });
+    var perRow = f.perRow || 2;
+    var rows = '';
+    for (var i = 0; i < cells.length; i += perRow) {
+      var r = cells.slice(i, i + perRow);
+      while (r.length < perRow) r.push('<td class="p-chk"></td>');
+      rows += '<tr>' + r.join('') + '</tr>';
+    }
+    return (f.label ? '<div class="p-field"><div class="lab">' + E(f.label) + '</div></div>' : '') +
+      '<table class="p-checks">' + rows + '</table>';
   }
 
   function metaTable(tpl, data) {

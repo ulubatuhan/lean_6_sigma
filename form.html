@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Form — Yepas Lean 6 Sigma</title>
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e4d64'/%3E%3Cpath d='M9 9h14l-8.4 7L23 23H9l8.4-7z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body>
+
+<header class="form-toolbar">
+  <div class="wrap-wide form-toolbar-in">
+    <a class="btn btn-ghost btn-icon" href="index.html" title="Ana sayfa" aria-label="Ana sayfa"></a>
+    <div class="doc-title-box">
+      <label class="sr-only" for="doc-title">Belge adı</label>
+      <input class="doc-title" id="doc-title" type="text" placeholder="Belge adı" autocomplete="off">
+      <div class="doc-sub"><span class="savedot" id="savedot"></span><span id="save-text"></span></div>
+    </div>
+    <div class="toolbar-actions" id="toolbar-actions"></div>
+  </div>
+</header>
+
+<main class="form-body">
+  <div class="wrap-wide">
+    <div id="form-root"></div>
+    <p class="muted tiny" style="margin-top:18px" id="foot-note"></p>
+  </div>
+</main>
+
+<div id="print-root"></div>
+
+<script src="assets/js/templates.js"></script>
+<script src="assets/js/core.js"></script>
+<script src="assets/js/diagrams.js"></script>
+<script src="assets/js/render.js"></script>
+<script src="assets/js/printdoc.js"></script>
+<script src="assets/js/export.js"></script>
+<script src="assets/js/form.js"></script>
+</body>
+</html>

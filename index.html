@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Yepas Lean 6 Sigma — Form ve Şablon Merkezi</title>
-<meta name="description" content="Yepas Lean 6 Sigma form ve şablon merkezi: kaizen, proses haritası, SIPOC, 5 neden, balık kılçığı, A3 ve daha fazlası. Doldur, PDF/Word çıktı al, tarayıcında sakla.">
+<title>YEPAŞ Lean 6 Sigma — Form ve Şablon Merkezi</title>
+<meta name="description" content="YEPAŞ Lean 6 Sigma form ve şablon merkezi: kaizen, proses haritası, SIPOC, 5 neden, balık kılçığı, A3 ve daha fazlası. Doldur, PDF/Word çıktı al, tarayıcında sakla.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e4d64'/%3E%3Cpath d='M9 9h14l-8.4 7L23 23H9l8.4-7z' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/css/main.css">
 <link rel="stylesheet" href="assets/css/print.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <header class="topbar">
   <div class="wrap topbar-in">
     <a class="brand" href="index.html">
-      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-        <rect width="32" height="32" rx="7" fill="currentColor" style="color:var(--brand)"/>
-        <path d="M9 9h14l-8.4 7L23 23H9l8.4-7z" fill="#fff"/>
-      </svg>
-      <span class="brand-name">YEPAS <span>Lean 6 Sigma</span></span>
+      <img class="brand-mark" id="brand-logo" alt="YEPAŞ">
+      <span class="brand-name">Lean 6 Sigma</span>
     </a>
     <div class="topbar-spacer"></div>
     <button class="btn btn-sm" id="btn-records" type="button"></button>
@@ -31,7 +31,7 @@
   <section class="hero">
     <div class="wrap">
       <span class="hero-eyebrow">Sürekli İyileştirme Araç Kutusu</span>
-      <h1>Yepas <span class="accent">Lean 6 Sigma</span></h1>
+      <h1>YEPAŞ <span class="accent">Lean 6 Sigma</span></h1>
       <p class="lede">
         Kaizen, kök neden analizi, proses haritası ve daha fazlası.
         Şablonu seçin, ekranda doldurun, PDF veya Word olarak çıktı alın —
@@ -57,6 +57,10 @@
         <h2>Form ve Şablonlar</h2>
         <span class="count" id="tpl-count"></span>
         <div class="spacer"></div>
+        <div class="searchbox">
+          <label class="sr-only" for="tpl-search">Şablon ara</label>
+          <input class="ctl" id="tpl-search" type="search" placeholder="Şablon ara…" autocomplete="off">
+        </div>
         <label class="sr-only" for="phase-filter">DMAIC aşamasına göre filtrele</label>
         <select class="ctl" id="phase-filter" style="width:auto">
           <option value="">Tüm aşamalar</option>
@@ -81,7 +85,7 @@
 
 <footer class="footer">
   <div class="wrap footer-in">
-    <span>Yepas Lean 6 Sigma · Sürekli İyileştirme Formları</span>
+    <span>YEPAŞ Lean 6 Sigma · Sürekli İyileştirme Formları</span>
     <div class="topbar-spacer" style="flex:1"></div>
     <span id="usage-note"></span>
   </div>
@@ -91,7 +95,9 @@
 
 <script src="assets/js/templates.js"></script>
 <script src="assets/js/core.js"></script>
+<script src="assets/js/brand.js"></script>
 <script src="assets/js/diagrams.js"></script>
+<script src="assets/js/flowmap.js"></script>
 <script src="assets/js/render.js"></script>
 <script src="assets/js/printdoc.js"></script>
 <script src="assets/js/export.js"></script>

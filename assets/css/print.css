@@ -12,10 +12,10 @@
   --p-soft:   #55637a;
   --p-line:   #b9c3d1;
   --p-line-2: #dde3ea;
-  --p-band:   #0e4d64;
+  --p-band:   #142E51;
   --p-band-ink: #ffffff;
   --p-zebra:  #f4f7fa;
-  --p-accent: #d98324;
+  --p-accent: #F7B449;
 
   width: 190mm;
   min-height: 277mm;
@@ -45,35 +45,47 @@
 }
 .pdoc-stage .pdoc.landscape { width: 297mm; min-height: 210mm; }
 
-/* ---------- Başlık bandı ---------- */
+/* ---------- Resmî YEPAŞ başlık tablosu ---------- */
+/* Kurumsal formların üst künye tablosuyla aynı düzen: logo | ad | künye. */
 
-.p-head {
-  display: flex; align-items: stretch; gap: 0;
-  border: 1.2pt solid var(--p-band);
+.p-official {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
   margin-bottom: 4mm;
 }
-.p-head-brand {
-  background: var(--p-band); color: var(--p-band-ink);
-  padding: 3mm 4mm;
-  display: flex; flex-direction: column; justify-content: center;
-  min-width: 34mm;
+.p-official > tbody > tr > td { border: .8pt solid var(--p-ink); vertical-align: middle; }
+
+.p-official .po-logo { width: 42mm; padding: 2mm 3mm; text-align: center; }
+.p-official .po-logo img { width: 100%; max-width: 36mm; height: auto; display: block; margin: 0 auto; }
+.p-official .po-logo b { font-size: 14pt; font-weight: 800; color: #142E51; }
+
+.p-official .po-title { padding: 2mm 4mm; text-align: center; }
+.p-official .po-title .t1 {
+  font-size: 12pt; font-weight: 700; line-height: 1.25; color: var(--p-ink);
 }
-.p-head-brand .b1 { font-size: 13pt; font-weight: 800; letter-spacing: .04em; line-height: 1.1; }
-.p-head-brand .b2 { font-size: 6.6pt; letter-spacing: .16em; opacity: .85; text-transform: uppercase; }
-.p-head-title {
-  flex: 1; padding: 3mm 4mm;
-  display: flex; flex-direction: column; justify-content: center;
+.p-official .po-title .t2 { font-size: 8.4pt; color: var(--p-soft); margin-top: .8mm; }
+
+.p-official .po-meta { width: 62mm; padding: 0; }
+.p-official .po-meta table { width: 100%; border-collapse: collapse; }
+.p-official .po-meta th,
+.p-official .po-meta td {
+  border: .5pt solid var(--p-line);
+  padding: .9mm 2mm;
+  font-size: 7.2pt;
+  line-height: 1.25;
 }
-.p-head-title .t1 { font-size: 13pt; font-weight: 700; line-height: 1.2; }
-.p-head-title .t2 { font-size: 8.4pt; color: var(--p-soft); margin-top: .6mm; }
-.p-head-code {
-  border-left: .8pt solid var(--p-line);
-  padding: 3mm 4mm;
-  min-width: 32mm;
-  display: flex; flex-direction: column; justify-content: center;
-  font-size: 7.6pt; color: var(--p-soft);
+.p-official .po-meta th {
+  text-align: left; font-weight: 600; color: var(--p-soft);
+  background: #f2f5f2; width: 55%;
 }
-.p-head-code b { display: block; font-size: 9pt; color: var(--p-ink); }
+.p-official .po-meta td { text-align: left; font-weight: 700; color: var(--p-ink); }
+
+.p-unofficial {
+  margin: -2mm 0 4mm; padding: 1.4mm 3mm;
+  border: .5pt dashed var(--p-line);
+  font-size: 7.2pt; color: var(--p-soft);
+}
 
 /* ---------- Künye tablosu ---------- */
 
@@ -147,8 +159,8 @@ table.p-tbl td.d { white-space: nowrap; }
   margin: 0; padding: 1.4mm 2.4mm; font-size: 8.6pt; font-weight: 700;
   color: #fff;
 }
-.p-pair .before h4 { background: #b3261e; }
-.p-pair .after  h4 { background: #1c7c54; }
+.p-pair .before h4 { background: #E7242A; }
+.p-pair .after  h4 { background: #026A39; }
 .p-pair .pbody { padding: 2.4mm; }
 .p-pair img { width: 100%; height: auto; display: block; margin-bottom: 2mm; border: .5pt solid var(--p-line-2); }
 .p-pair .cap { font-size: 8.6pt; white-space: pre-wrap; }
@@ -157,6 +169,42 @@ table.p-tbl td.d { white-space: nowrap; }
 
 .p-diagram { text-align: center; }
 .p-diagram svg, .p-diagram img { max-width: 100%; height: auto; }
+
+/* ---------- CNX ---------- */
+
+.p-cnx {
+  display: inline-block; min-width: 4.4mm;
+  padding: .2mm 1mm; border-radius: 2.2mm;
+  color: #fff; font-size: 7.6pt; font-weight: 700; text-align: center;
+  line-height: 1.35;
+}
+.p-static {
+  font-size: 7.8pt; color: var(--p-soft);
+  border: .5pt dashed var(--p-line); border-radius: 1mm;
+  padding: 1.6mm 2.2mm; margin-bottom: 2.6mm;
+}
+.p-static .cnx-legend { display: block; }
+.p-static .cnx-legend-title { display: none; }
+.p-static .cnx-item { display: inline-block; margin-right: 4mm; }
+.p-static .cnx-item b {
+  display: inline-block; min-width: 3.6mm; text-align: center;
+  color: #fff; border-radius: 2mm; padding: 0 .8mm; font-size: 7.4pt;
+}
+.p-static .cnx-item strong { color: var(--p-ink); }
+
+/* ---------- İşaret kutucukları ---------- */
+
+table.p-checks { width: 100%; border-collapse: collapse; font-size: 8.6pt; }
+table.p-checks td {
+  border: .6pt solid var(--p-line);
+  padding: 1.4mm 2mm; vertical-align: middle;
+}
+table.p-checks td.p-chk .bx {
+  display: inline-block; width: 3.4mm; height: 3.4mm;
+  border: .7pt solid var(--p-ink); margin-right: 2mm;
+  text-align: center; line-height: 3.1mm; font-weight: 700;
+  vertical-align: -.4mm;
+}
 
 /* ---------- 5 Neden ---------- */
 
@@ -167,7 +215,11 @@ table.p-why td.q {
   white-space: nowrap;
 }
 table.p-why tr.root td { background: #fdeceb; }
-table.p-why tr.root td.q { color: #b3261e; }
+table.p-why tr.root td.q { color: #E7242A; }
+table.p-why .why-ev {
+  margin-top: .8mm; font-size: 7.8pt; color: var(--p-soft);
+  border-left: .8pt solid var(--p-line); padding-left: 1.6mm;
+}
 
 /* ---------- A3 ---------- */
 

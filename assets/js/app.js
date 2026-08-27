@@ -10,6 +10,9 @@
   Y.initTheme();
   Y.mountThemeButton(document.getElementById('theme-slot'));
 
+  var logo = document.getElementById('brand-logo');
+  if (logo && Y.BRAND) logo.src = Y.BRAND.logo;
+
   var storageOK = Y.Store.available();
 
   /* ---------------------------------------------------------------- seçici */
@@ -30,7 +33,7 @@
     if (!t) { desc.textContent = ''; return; }
     desc.innerHTML = '<strong>' + Y.esc(t.name) + '</strong> — ' + Y.esc(t.desc) +
       ' <span class="pill pill-' + t.phase + '" style="margin-left:6px">' + Y.esc(Y.PHASES[t.phase].label) + '</span>' +
-      ' <span class="pill">' + Y.esc(t.code) + '</span>' +
+      (t.code ? ' <span class="pill">' + Y.esc(t.code) + '</span>' : '') +
       ' <span class="pill">' + (t.orientation === 'landscape' ? 'A4 Yatay' : 'A4 Dikey') + '</span>';
   }
 
@@ -51,10 +54,26 @@
     phaseFilter.appendChild(el('option', { value: pk, text: Y.PHASES[pk].label + ' (' + Y.PHASES[pk].full + ')' }));
   });
 
+  var search = document.getElementById('tpl-search');
+
+  function norm(s) {
+    var map = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u', 'İ': 'i' };
+    return String(s || '').replace(/[çğıöşüİ]/gi, function (c) { return map[c.toLowerCase()] || c; }).toLowerCase();
+  }
+
   function paintGrid() {
     var f = phaseFilter.value;
-    var list = Y.TEMPLATES.filter(function (t) { return !f || t.phase === f; });
+    var q = norm(search.value.trim());
+    var list = Y.TEMPLATES.filter(function (t) {
+      if (f && t.phase !== f) return false;
+      if (!q) return true;
+      return norm(t.name + ' ' + t.desc + ' ' + t.code + ' ' + (t.tags || '')).indexOf(q) >= 0;
+    });
     grid.innerHTML = '';
+    if (!list.length) {
+      grid.appendChild(el('div', { class: 'empty', style: 'grid-column:1/-1',
+        text: 'Aramanızla eşleşen şablon yok.' }));
+    }
     list.forEach(function (t) {
       var a = el('a', { class: 'tcard', href: 'form.html?t=' + encodeURIComponent(t.id) });
       a.appendChild(el('div', { class: 'tcard-top' }, [
@@ -64,13 +83,15 @@
       a.appendChild(el('p', { text: t.desc }));
       a.appendChild(el('div', { class: 'tcard-foot' }, [
         el('span', { class: 'pill pill-' + t.phase, text: Y.PHASES[t.phase].label }),
-        el('span', { class: 'pill', text: t.code })
+        t.code ? el('span', { class: 'pill', text: t.code })
+               : el('span', { class: 'pill pill-soft', text: 'Kurum içi araç' })
       ]));
       grid.appendChild(a);
     });
     document.getElementById('tpl-count').textContent = list.length + ' şablon';
   }
   phaseFilter.addEventListener('change', paintGrid);
+  search.addEventListener('input', paintGrid);
   paintGrid();
 
   /* ---------------------------------------------------------------- kayıtlar */

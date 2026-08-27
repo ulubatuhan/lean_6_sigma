@@ -55,16 +55,54 @@ var ONAY = {
   addLabel: 'Satır ekle'
 };
 
+/* SGB-F-0650 Balık Kılçığı (Ishikawa) Diyagramı ana dal sırası. */
 var M6 = [
-  { key: 'insan',    label: 'İnsan (Man)',         color: '#0b6ea8' },
-  { key: 'makine',   label: 'Makine (Machine)',    color: '#7a4bbd' },
-  { key: 'malzeme',  label: 'Malzeme (Material)',  color: '#1c7c54' },
-  { key: 'metot',    label: 'Metot (Method)',      color: '#b3261e' },
-  { key: 'olcum',    label: 'Ölçüm (Measurement)', color: '#b4690e' },
-  { key: 'cevre',    label: 'Çevre (Environment)', color: '#0e7490' }
+  { key: 'insan',    label: 'İNSAN',    color: '#142E51' },
+  { key: 'makine',   label: 'MAKİNE',   color: '#026A39' },
+  { key: 'cevre',    label: 'ÇEVRE',    color: '#0e7490' },
+  { key: 'olcum',    label: 'ÖLÇÜM',    color: '#B8860B' },
+  { key: 'metot',    label: 'YÖNTEM',   color: '#7a4bbd' },
+  { key: 'malzeme',  label: 'MALZEME',  color: '#E7242A' }
 ];
 
 var DURUM_OPT = ['Planlandı', 'Devam Ediyor', 'Tamamlandı', 'İptal'];
+
+/* CNX sınıflandırması — SGB-F-0650 Kök Neden Analiz Formları, NOT-1. */
+var CNX_OPT = ['C — Kontrol edilebilir', 'N — Kontrol edilemez', 'X — Bilinmiyor'];
+
+var CNX_LEGEND = {
+  type: 'static', width: 'full',
+  html: '<div class="cnx-legend">' +
+    '<span class="cnx-legend-title">NOT-1 · C, N, X</span>' +
+    '<span class="cnx-item"><b style="background:#026A39">C</b> <strong>Kontrol edilebilir</strong> — ' +
+      'prosedür, talimat veya kontrol planı ile sabitlenebilen neden.</span>' +
+    '<span class="cnx-item"><b style="background:#F7B449">N</b> <strong>Kontrol edilemez</strong> — ' +
+      'doğrudan müdahale edilemeyen neden; etkisi izlenir.</span>' +
+    '<span class="cnx-item"><b style="background:#E7242A">X</b> <strong>Bilinmiyor</strong> — ' +
+      'kontrol edilebilirliği belirsiz; araştırma veya deney gerekir.</span>' +
+    '</div>'
+};
+
+var CNX_SONUC = {
+  title: 'C, N, X Sonuçları',
+  hint: 'Sınıflandırmayı aksiyona çevirin: C\'ler standartlaştırılır, N\'ler izlenir, X\'ler araştırılır.',
+  fields: [
+    { name: 'cnx_c', label: 'C — Nasıl sabit tutulacak? (standart, talimat, kontrol planı)',
+      type: 'textarea', width: 'third', rows: 3 },
+    { name: 'cnx_n', label: 'N — Nasıl izlenecek? (ölçüm, kayıt, uyarı sınırı)',
+      type: 'textarea', width: 'third', rows: 3 },
+    { name: 'cnx_x', label: 'X — Hangi araştırma / deney yapılacak?',
+      type: 'textarea', width: 'third', rows: 3 }
+  ]
+};
+
+/* SGB-F-0650 NOT-2. */
+var KNA_NOT2 = {
+  type: 'static', width: 'full', print: false,
+  html: '<div class="notice">NOT-2: Probleme ait 5 Neden Analizi\'ni ' +
+    '<strong>Balık Kılçığı Diyagramı</strong> veya <strong>5 Neden Analizi Formu</strong> ' +
+    'kullanarak gerçekleştirebilirsiniz.</div>'
+};
 
 /* ==========================================================================
    ŞABLONLAR
@@ -75,31 +113,48 @@ Y6S.TEMPLATES = [
 /* ---------------------------------------------------------------- 1 */
 {
   id: 'kaizen-oncesi-sonrasi',
+  tags: 'kaizen, once sonra, before after, iyilestirme, gorsel, fotograf',
   name: 'Öncesi / Sonrası Kaizen',
-  code: 'FR-KZN-01',
+  code: 'SYB-F-0361',
+  resmiAd: 'Öncesi-Sonrası Kaizen Formu',
+  yayinTarihi: '1.07.2022',
+  revNo: '1',
+  revTarihi: '12.11.2025',
   icon: 'swap',
   phase: 'I',
   orientation: 'portrait',
   desc: 'İyileştirme öncesi ve sonrası durumu görsellerle karşılaştırın, kazanımları sayısallaştırın.',
-  meta: META_STD.concat([
-    { name: 'kaizen_no', label: 'Kaizen No', type: 'text', width: 'quarter', placeholder: 'KZN-2026-001' }
-  ]),
+  /* Künye alanları SYB-F-0361 üst tablosuyla aynı sırada. */
+  meta: [
+    { name: 'kaizen_no', label: 'Kaizen No', type: 'text', width: 'quarter', placeholder: 'KZN-2026-001' },
+    { name: 'konu', label: 'Kaizen Konusu', type: 'text', width: 'half',
+      placeholder: 'Örn. Depo sevkiyat süresinin kısaltılması' },
+    { name: 'lider', label: 'Kaizen Lider', type: 'text', width: 'quarter' },
+    { name: 'ekip', label: 'İyileştirme Projesi Üyeleri', type: 'text', width: 'half',
+      placeholder: 'Virgülle ayırarak yazın' },
+    { name: 'kategori', label: 'Kategori / Etkilediği Süreç', type: 'text', width: 'half' },
+    { name: 'baslangic_tarihi', label: 'Başlangıç Tarihi', type: 'date', width: 'third' },
+    { name: 'bitis_tarihi', label: 'Hedeflenen Bitiş Tarihi', type: 'date', width: 'third' },
+    { name: 'tarih', label: 'Form Tarihi', type: 'date', width: 'third' }
+  ],
   sections: [
     {
-      title: 'Problem Tanımı',
+      title: 'Problem Tanımı ve Riskler',
       hint: 'İyileştirme öncesindeki durumu, kaybı ve etkisini net biçimde yazın.',
       fields: [
         { name: 'problem', label: 'Mevcut Durum / Problem', type: 'textarea', width: 'full', rows: 4,
           placeholder: 'Ne oluyor? Ne sıklıkla? Kime, ne kadar zarar veriyor?' },
+        { name: 'riskler', label: 'Projede Öngörülen Riskler', type: 'textarea', width: 'full', rows: 3 },
         { name: 'kayip_turu', label: 'İsraf Türü', type: 'select', width: 'half',
           options: ['Fazla Üretim', 'Bekleme', 'Taşıma', 'Fazla İşlem', 'Stok', 'Hareket', 'Hata / Yeniden İşleme', 'Kullanılmayan Yetenek'] }
       ]
     },
     {
-      title: 'Öncesi / Sonrası Karşılaştırma',
-      hint: 'Görselleri sürükleyip bırakabilir veya tıklayarak seçebilirsiniz. Görseller tarayıcı belleğine kaydedilir.',
+      title: 'Kaizen Öncesi / Kaizen Sonrası',
+      hint: 'Kroki, şema ve/veya fotoğraf ekleyin. Görselleri sürükleyip bırakabilir veya tıklayarak seçebilirsiniz.',
       fields: [
-        { name: 'karsilastirma', type: 'pair', label: '', beforeLabel: 'ÖNCESİ', afterLabel: 'SONRASI' }
+        { name: 'karsilastirma', type: 'pair', label: '',
+          beforeLabel: 'KAIZEN ÖNCESİ', afterLabel: 'KAIZEN SONRASI' }
       ]
     },
     {
@@ -113,10 +168,18 @@ Y6S.TEMPLATES = [
       ]
     },
     {
-      title: 'Kazanımlar',
-      hint: 'Ölçülebilir her kriteri ayrı satıra yazın; kazanç kolonuna fark veya yüzde girin.',
+      title: 'Kaizen Kazançları',
+      hint: 'Bu kaizenin sağladığı kazanç türlerini işaretleyin, ölçülebilir kriterleri tabloya yazın.',
       fields: [
-        { name: 'kazanim', type: 'table', label: '',
+        { name: 'kazanc_turu', type: 'checks', label: 'Kazanç Türleri', perRow: 2,
+          options: [
+            'İş Gücü Tasarrufu', 'Malzeme Tasarrufu',
+            'İş Sağlığı ve Güvenliği', 'Enerji Tasarrufu',
+            'İş Kolaylığı / Ergonomi', 'Kalite İyileştirme',
+            'Çevre İyileştirme', 'Dokümantasyon',
+            'Müşteri Memnuniyeti', 'Diğer İyileştirmeler'
+          ] },
+        { name: 'kazanim', type: 'table', label: 'Ölçülebilir Kazanımlar',
           columns: [
             { name: 'kriter',  label: 'Kriter',  type: 'text', width: '30%', placeholder: 'Çevrim süresi' },
             { name: 'oncesi',  label: 'Öncesi',  type: 'text', width: '16%' },
@@ -126,16 +189,24 @@ Y6S.TEMPLATES = [
           ],
           seed: [{}, {}, {}]
         },
-        { name: 'yillik_kazanc', label: 'Yıllık Tahmini Kazanç (TL)', type: 'text', width: 'half' }
+        { name: 'yillik_kazanc', label: 'Yıllık TL Kazanç', type: 'text', width: 'half' }
       ]
     },
     {
-      title: 'Yaygınlaştırma ve Standartlaştırma',
+      title: 'Yaygınlaştırma ve Onaylar',
       fields: [
         { name: 'standart', label: 'Standartlaştırma Adımları', type: 'textarea', width: 'full', rows: 3,
           placeholder: 'Talimat güncellendi mi? Eğitim verildi mi? Kontrol planına eklendi mi?' },
         { name: 'yaygin', label: 'Yaygınlaştırılabilecek Diğer Alanlar', type: 'textarea', width: 'full', rows: 2 },
-        ONAY
+        { name: 'onay', type: 'table', label: 'Onaylar',
+          columns: [
+            { name: 'rol',   label: 'Onay',      type: 'text', width: '34%' },
+            { name: 'ad',    label: 'Ad Soyad',  type: 'text', width: '33%' },
+            { name: 'tarih', label: 'İmza / Tarih', type: 'date', width: '33%' }
+          ],
+          seed: [{ rol: 'Finansal Kontrol Onayı' }, { rol: 'Şampiyon / Kara Kuşak Onayı' }],
+          addLabel: 'Satır ekle'
+        }
       ]
     }
   ]
@@ -144,12 +215,14 @@ Y6S.TEMPLATES = [
 /* ---------------------------------------------------------------- 2 */
 {
   id: 'proses-haritasi',
+  tags: 'proses, surec, akis, flowchart, akis semasi, swimlane, kulvar, harita, is akisi',
   name: 'Proses Haritası',
-  code: 'FR-PRS-01',
+  code: '',
+  resmi: false,
   icon: 'flow',
   phase: 'M',
   orientation: 'landscape',
-  desc: 'Süreç adımlarını sırayla tanımlayın; akış diyagramı ve katma değer analizi otomatik oluşsun.',
+  desc: 'Kulvarlı tuvalde kutuları sürükleyip ok çizerek dallanmalı süreç akışı kurun.',
   meta: META_STD.concat([
     { name: 'surec_sahibi', label: 'Süreç Sahibi', type: 'text', width: 'third' },
     { name: 'baslangic', label: 'Süreç Başlangıcı', type: 'text', width: 'third', placeholder: 'Sipariş alınması' },
@@ -157,11 +230,15 @@ Y6S.TEMPLATES = [
   ]),
   sections: [
     {
-      title: 'Süreç Adımları',
-      hint: 'Her adımın türünü seçin. Diyagram, girdiğiniz veriye göre anlık olarak güncellenir.',
+      title: 'Süreç Haritası',
       fields: [
-        { name: 'adimlar', type: 'flow', label: '' }
+        { name: 'adimlar', type: 'flowmap', label: '' }
       ]
+    },
+    {
+      title: 'Girdi Sınıflandırması (CNX)',
+      hint: 'Her kutunun özellik panelinden CNX sınıfı seçebilirsiniz; sınıf, kutunun sağ üstünde renkli rozet olarak görünür.',
+      fields: [CNX_LEGEND].concat(CNX_SONUC.fields)
     },
     {
       title: 'Analiz ve Değerlendirme',
@@ -179,8 +256,13 @@ Y6S.TEMPLATES = [
 /* ---------------------------------------------------------------- 3 */
 {
   id: 'beyin-firtinasi',
+  tags: 'beyin firtinasi, brainstorming, fikir, oneri, toplanti',
   name: 'Beyin Fırtınası Formu',
-  code: 'FR-BYF-01',
+  code: 'SGB-F-0648',
+  resmiAd: 'Beyin Fırtınası Formu',
+  yayinTarihi: '11.04.2025',
+  revNo: '0',
+  revTarihi: '11.04.2025',
   icon: 'bulb',
   phase: 'D',
   orientation: 'portrait',
@@ -247,8 +329,13 @@ Y6S.TEMPLATES = [
 /* ---------------------------------------------------------------- 4 */
 {
   id: 'kok-neden-analizi',
+  tags: 'kok neden, root cause, rca, dof, duzeltici faaliyet, cnx, 8d',
   name: 'Kök Neden Analizi Formu',
-  code: 'FR-KNA-01',
+  code: 'SGB-F-0650',
+  resmiAd: 'Kök Neden Analiz Formları',
+  yayinTarihi: '17.04.2025',
+  revNo: '0',
+  revTarihi: '17.04.2025',
   icon: 'root',
   phase: 'A',
   orientation: 'portrait',
@@ -279,26 +366,30 @@ Y6S.TEMPLATES = [
       ]
     },
     {
-      title: 'Olası Nedenler ve Doğrulama',
-      hint: 'Her olası nedeni sahada veri ile doğrulayın; doğrulanmayanları eleyin.',
+      title: 'Olası Nedenler, Doğrulama ve CNX',
+      hint: 'Her olası nedeni sahada veri ile doğrulayın, doğrulanmayanları eleyin ve doğrulananları CNX ile sınıflandırın.',
       fields: [
+        CNX_LEGEND,
         { name: 'nedenler', type: 'table', label: '',
           columns: [
-            { name: 'neden',     label: 'Olası Neden',        type: 'textarea', width: '32%' },
-            { name: 'kategori',  label: 'Kategori (6M)',      type: 'select',   width: '16%',
+            { name: 'neden',     label: 'Olası Neden',        type: 'textarea', width: '27%' },
+            { name: 'kategori',  label: 'Kategori (6M)',      type: 'select',   width: '14%',
               options: M6.map(function (m) { return m.label; }) },
-            { name: 'dogrulama', label: 'Doğrulama Yöntemi',  type: 'textarea', width: '28%' },
-            { name: 'sonuc',     label: 'Sonuç',              type: 'select',   width: '14%', options: ['Doğrulandı', 'Elendi', 'İnceleniyor'] },
-            { name: 'kanit',     label: 'Kanıt',              type: 'text',     width: '10%' }
+            { name: 'dogrulama', label: 'Doğrulama Yöntemi',  type: 'textarea', width: '22%' },
+            { name: 'sonuc',     label: 'Sonuç',              type: 'select',   width: '12%', options: ['Doğrulandı', 'Elendi', 'İnceleniyor'] },
+            { name: 'cnx',       label: 'CNX',                type: 'select',   width: '17%', options: CNX_OPT, cnx: true },
+            { name: 'kanit',     label: 'Kanıt',              type: 'text',     width: '8%' }
           ],
           seed: [{}, {}, {}, {}, {}]
         }
       ]
     },
+    CNX_SONUC,
     {
       title: 'Kök Neden ve Kalıcı Aksiyon',
       fields: [
-        { name: 'kok_neden', label: 'Belirlenen Kök Neden', type: 'textarea', width: 'full', rows: 3 },
+        { name: 'kok_neden', label: 'Belirlenen Kök Neden', type: 'textarea', width: 'two-thirds', rows: 3 },
+        { name: 'kok_cnx', label: 'Kök Nedenin CNX Sınıfı', type: 'select', width: 'third', options: CNX_OPT },
         { name: 'aksiyonlar', type: 'table', label: 'Kalıcı Düzeltici Faaliyetler',
           columns: [
             { name: 'aksiyon', label: 'Aksiyon', type: 'textarea', width: '40%' },
@@ -320,8 +411,13 @@ Y6S.TEMPLATES = [
 /* ---------------------------------------------------------------- 5 */
 {
   id: 'sipoc',
+  tags: 'sipoc, tedarikci girdi surec cikti musteri, ctq, kapsam',
   name: 'SIPOC Diyagramı',
-  code: 'FR-SPC-01',
+  code: 'SGB-F-0658',
+  resmiAd: 'SIPOC Diyagramı',
+  yayinTarihi: '23.05.2025',
+  revNo: '0',
+  revTarihi: '23.05.2025',
   icon: 'sipoc',
   phase: 'D',
   orientation: 'landscape',
@@ -347,7 +443,9 @@ Y6S.TEMPLATES = [
       title: 'SIPOC',
       hint: 'Süreç (P) kolonunu 4–7 üst seviye adımla sınırlayın. Detay adımlar proses haritasına aittir.',
       fields: [
-        { name: 'sipoc', type: 'sipoc', label: '' }
+        { name: 'sipoc', type: 'sipoc', label: '' },
+        { name: 'kaynaklar', label: 'Resources (Kaynaklar)', type: 'textarea', width: 'full', rows: 2,
+          placeholder: 'Süreci yürütmek için gereken insan, ekipman, sistem ve bilgi kaynakları' }
       ]
     },
     {
@@ -370,8 +468,13 @@ Y6S.TEMPLATES = [
 /* ---------------------------------------------------------------- 6 */
 {
   id: 'bes-neden',
+  tags: '5 neden, bes neden, 5 why, five why, kok neden, cnx',
   name: '5 Neden Analizi',
-  code: 'FR-5N-01',
+  code: 'SGB-F-0650',
+  resmiAd: 'Kök Neden Analiz Formları',
+  yayinTarihi: '17.04.2025',
+  revNo: '0',
+  revTarihi: '17.04.2025',
   icon: 'why',
   phase: 'A',
   orientation: 'portrait',
@@ -390,8 +493,10 @@ Y6S.TEMPLATES = [
     },
     {
       title: 'Neden Zinciri',
+      hint: 'Her cevabı bir kanıtla destekleyin — kanıtı olmayan halka varsayımdır. Kök nedeni CNX ile sınıflandırın.',
       fields: [
-        { name: 'zincir', type: 'fivewhy', label: '', count: 5 }
+        CNX_LEGEND,
+        { name: 'zincir', type: 'fivewhy', label: '', count: 5, evidence: true, cnx: true }
       ]
     },
     {
@@ -411,8 +516,13 @@ Y6S.TEMPLATES = [
 /* ---------------------------------------------------------------- 7 */
 {
   id: 'balik-kilcigi',
+  tags: 'balik kilcigi, kilcik, ishikawa, sebep sonuc, fishbone, 6m, cnx',
   name: 'Balık Kılçığı (Ishikawa)',
-  code: 'FR-ISK-01',
+  code: 'SGB-F-0650',
+  resmiAd: 'Kök Neden Analiz Formları',
+  yayinTarihi: '17.04.2025',
+  revNo: '0',
+  revTarihi: '17.04.2025',
   icon: 'fish',
   phase: 'A',
   orientation: 'landscape',
@@ -427,36 +537,47 @@ Y6S.TEMPLATES = [
       ]
     },
     {
-      title: 'Nedenler — 6M',
-      hint: 'Her kategoriye en az 2–3 neden yazın. Boş bırakılan kategoriler diyagramda da boş görünür.',
+      title: 'Nedenler — 6M ve CNX',
+      hint: 'Her kategoriye en az 2–3 neden yazın; yanındaki C / N / X düğmesiyle nedeni sınıflandırın. ' +
+        'Sınıf, diyagramda renkli rozet olarak görünür.',
       fields: [
-        { name: 'nedenler', type: 'fishbone', label: '', categories: M6 }
+        CNX_LEGEND,
+        { name: 'nedenler', type: 'fishbone', label: '', categories: M6, transferTo: 'oncelikli' }
       ]
     },
     {
       title: 'Önceliklendirme',
+      hint: 'Skor kolonu, etki ve sıklık girildiğinde otomatik hesaplanır; satırlar skora göre sıralanabilir.',
       fields: [
         { name: 'oncelikli', type: 'table', label: 'Öncelikli Nedenler',
           columns: [
-            { name: 'neden',    label: 'Neden',     type: 'textarea', width: '40%' },
-            { name: 'kategori', label: 'Kategori',  type: 'select',   width: '20%', options: M6.map(function (m) { return m.label; }) },
-            { name: 'etki',     label: 'Etki (1-5)', type: 'number',  width: '13%' },
-            { name: 'siklik',   label: 'Sıklık (1-5)', type: 'number', width: '13%' },
-            { name: 'skor',     label: 'Skor',      type: 'number',   width: '14%' }
+            { name: 'neden',    label: 'Neden',     type: 'textarea', width: '33%' },
+            { name: 'kategori', label: 'Kategori',  type: 'select',   width: '16%', options: M6.map(function (m) { return m.label; }) },
+            { name: 'cnx',      label: 'CNX',       type: 'select',   width: '17%', options: CNX_OPT, cnx: true },
+            { name: 'etki',     label: 'Etki (1-5)', type: 'number',  width: '11%' },
+            { name: 'siklik',   label: 'Sıklık (1-5)', type: 'number', width: '12%' },
+            { name: 'skor',     label: 'Skor',      type: 'number',   width: '11%', formula: 'etki*siklik' }
           ],
-          seed: [{}, {}, {}]
+          seed: [{}, {}, {}],
+          sortBy: 'skor'
         },
         { name: 'sonuc', label: 'Analiz Sonucu / Sonraki Adım', type: 'textarea', width: 'full', rows: 3 }
       ]
-    }
+    },
+    CNX_SONUC
   ]
 },
 
 /* ---------------------------------------------------------------- 8 */
 {
   id: 'is-analiz-formu',
+  tags: 'is analizi, gorev tanimi, pozisyon, yetkinlik, is tanimi',
   name: 'İş Analiz Formu',
-  code: 'FR-IAF-01',
+  code: 'SYB-F-0363',
+  resmiAd: 'İş Analiz Formu',
+  yayinTarihi: '1.07.2022',
+  revNo: '0',
+  revTarihi: '1.07.2022',
   icon: 'clip',
   phase: 'M',
   orientation: 'portrait',
@@ -538,8 +659,10 @@ Y6S.TEMPLATES = [
 /* ---------------------------------------------------------------- 9 */
 {
   id: 'organizasyon-semasi',
+  tags: 'organizasyon semasi, org sema, hiyerarsi, kadro, teskilat',
   name: 'Organizasyon Şeması',
-  code: 'FR-ORG-01',
+  code: '',
+  resmi: false,
   icon: 'org',
   phase: 'D',
   orientation: 'landscape',
@@ -573,29 +696,32 @@ Y6S.TEMPLATES = [
 /* ---------------------------------------------------------------- 10 */
 {
   id: 'a3-kaizen',
+  tags: 'a3, puko, pdca, rapor, problem cozme, kaizen',
   name: 'A3 Kaizen Formu',
-  code: 'FR-A3-01',
+  code: 'SYB-F-0360',
+  resmiAd: 'A3 Kaizen Formu',
+  yayinTarihi: '1.07.2022',
+  revNo: '1',
+  revTarihi: '12.11.2025',
   icon: 'a3',
   phase: 'I',
   orientation: 'landscape',
   desc: 'Problemden standartlaştırmaya kadar tüm PUKÖ döngüsünü tek sayfada raporlayın.',
+  /* Künye ve 8 adım SYB-F-0360 A3 Kaizen Formu ile aynı sırada. */
   meta: [
-    { name: 'baslik', label: 'A3 Başlığı', type: 'text', width: 'half' },
-    { name: 'sahibi', label: 'A3 Sahibi', type: 'text', width: 'quarter' },
-    { name: 'tarih', label: 'Tarih', type: 'date', width: 'quarter' },
-    { name: 'birim', label: 'Bölüm', type: 'text', width: 'third' },
-    { name: 'mentor', label: 'Mentor / Sponsor', type: 'text', width: 'third' },
-    { name: 'ekip', label: 'Ekip', type: 'text', width: 'third' }
+    { name: 'kaizen_no', label: 'Kaizen No', type: 'text', width: 'quarter' },
+    { name: 'konu', label: 'Kaizen Konu', type: 'text', width: 'half' },
+    { name: 'lider', label: 'Kaizen Lider', type: 'text', width: 'quarter' },
+    { name: 'kategori', label: 'Kategori / Etkilediği Süreç', type: 'text', width: 'half' },
+    { name: 'ekip', label: 'İyileştirme Projesi Üyeleri', type: 'text', width: 'half' },
+    { name: 'baslangic_tarihi', label: 'Başlangıç Tarihi', type: 'date', width: 'half' },
+    { name: 'bitis_tarihi', label: 'Hedeflenen Bitiş Tarihi', type: 'date', width: 'half' }
   ],
   a3: true,
   sections: [
     {
-      title: 'Arka Plan',
-      hint: 'Neden bu konu? İş hedefiyle bağlantısı nedir?',
-      fields: [{ name: 'arka_plan', label: '', type: 'textarea', width: 'full', rows: 4 }]
-    },
-    {
       title: 'Mevcut Durum',
+      hint: 'Problemi veriyle tarif edin: ne oluyor, ne sıklıkla, hangi etkiyle?',
       fields: [
         { name: 'mevcut', label: 'Durum Açıklaması', type: 'textarea', width: 'full', rows: 4 },
         { name: 'mevcut_veri', type: 'table', label: 'Mevcut Performans',
@@ -612,37 +738,61 @@ Y6S.TEMPLATES = [
       title: 'Hedef',
       fields: [
         { name: 'hedef', label: 'Hedef Durum', type: 'textarea', width: 'full', rows: 3 },
-        { name: 'hedef_tarih', label: 'Hedef Tarihi', type: 'date', width: 'half' },
-        { name: 'hedef_deger', label: 'Hedef Değer', type: 'text', width: 'half' }
+        { name: 'hedef_deger', label: 'Hedef Değer', type: 'text', width: 'half' },
+        { name: 'hedef_tarih', label: 'Hedef Tarihi', type: 'date', width: 'half' }
       ]
     },
     {
-      title: 'Kök Neden Analizi',
+      title: 'Proje Riskleri',
       fields: [
-        { name: 'analiz', label: 'Analiz Özeti', type: 'textarea', width: 'full', rows: 3 },
-        { name: 'kok_zincir', type: 'fivewhy', label: '5 Neden', count: 5 }
+        { name: 'riskler', type: 'table', label: '',
+          columns: [
+            { name: 'risk',   label: 'Risk',   type: 'textarea', width: '46%' },
+            { name: 'etki',   label: 'Etkisi', type: 'text',     width: '27%' },
+            { name: 'onlem',  label: 'Önlem',  type: 'textarea', width: '27%' }
+          ],
+          seed: [{}, {}]
+        }
       ]
     },
     {
-      title: 'Karşı Önlemler',
+      title: 'Kök Sebep Analizi',
+      fields: [
+        CNX_LEGEND,
+        { name: 'analiz', label: 'Analiz Özeti', type: 'textarea', width: 'full', rows: 3 },
+        { name: 'kok_zincir', type: 'fivewhy', label: '5 Neden', count: 5, evidence: true, cnx: true }
+      ]
+    },
+    {
+      title: '1. Aşama Gözden Geçirme (Şampiyon / Kara Kuşak)',
+      hint: 'Kök sebep analizi onaylanmadan çözüm aşamasına geçilmez.',
+      fields: [
+        { name: 'gg1_not', label: 'Değerlendirme', type: 'textarea', width: 'full', rows: 2 },
+        { name: 'gg1_ad',  label: 'Ad Soyad', type: 'text', width: 'half' },
+        { name: 'gg1_tarih', label: 'İmza / Tarih', type: 'date', width: 'half' }
+      ]
+    },
+    {
+      title: 'Önerilen Çözümler',
       fields: [
         { name: 'onlemler', type: 'table', label: '',
           columns: [
-            { name: 'onlem',   label: 'Karşı Önlem', type: 'textarea', width: '38%' },
-            { name: 'neden',   label: 'Hangi Kök Nedene', type: 'textarea', width: '26%' },
-            { name: 'etki',    label: 'Beklenen Etki', type: 'text',   width: '20%' },
-            { name: 'oncelik', label: 'Öncelik',      type: 'select',  width: '16%', options: ['Yüksek', 'Orta', 'Düşük'] }
+            { name: 'onlem',    label: 'Önerilen Çözüm', type: 'textarea', width: '32%' },
+            { name: 'neden',    label: 'Hangi Kök Nedene', type: 'textarea', width: '22%' },
+            { name: 'sorumlu',  label: 'Sorumluluklar', type: 'text', width: '18%' },
+            { name: 'termin',   label: 'Termin', type: 'date', width: '14%' },
+            { name: 'maliyet',  label: 'Maliyet Tahmini', type: 'text', width: '14%' }
           ],
           seed: [{}, {}, {}]
         }
       ]
     },
     {
-      title: 'Uygulama Planı',
+      title: 'İyileştirme Aksiyonlarının Uygulanması',
       fields: [
         { name: 'plan', type: 'table', label: '',
           columns: [
-            { name: 'is',      label: 'İş',      type: 'textarea', width: '38%' },
+            { name: 'is',      label: 'Aksiyon', type: 'textarea', width: '38%' },
             { name: 'sorumlu', label: 'Sorumlu', type: 'text',     width: '18%' },
             { name: 'baslama', label: 'Başlama', type: 'date',     width: '14%' },
             { name: 'termin',  label: 'Termin',  type: 'date',     width: '14%' },
@@ -653,9 +803,22 @@ Y6S.TEMPLATES = [
       ]
     },
     {
-      title: 'Takip ve Doğrulama',
+      title: '2. Aşama Gözden Geçirme (Süreç Sahibi)',
       fields: [
-        { name: 'takip', label: 'Sonuçlar', type: 'textarea', width: 'full', rows: 3 },
+        { name: 'gg2_not', label: 'Değerlendirme', type: 'textarea', width: 'full', rows: 2 },
+        { name: 'gg2_ad',  label: 'Ad Soyad', type: 'text', width: 'half' },
+        { name: 'gg2_tarih', label: 'İmza / Tarih', type: 'date', width: 'half' }
+      ]
+    },
+    {
+      title: 'Çözümün Kontrolü',
+      fields: [
+        { name: 'aksiyon_uygulandi', label: 'Aksiyon Uygulandı mı?', type: 'select', width: 'half',
+          options: ['Evet', 'Kısmen', 'Hayır'] },
+        { name: 'hedefe_ulasildi', label: 'Hedefe Ulaşıldı mı?', type: 'select', width: 'half',
+          options: ['Evet', 'Kısmen', 'Hayır'] },
+        { name: 'uygulama_maliyeti', label: 'Uygulamanın Maliyeti', type: 'text', width: 'half' },
+        { name: 'yillik_getiri', label: 'Yıllık Getiri', type: 'text', width: 'half' },
         { name: 'takip_veri', type: 'table', label: 'Ölçüm Sonuçları',
           columns: [
             { name: 'gosterge', label: 'Gösterge', type: 'text', width: '34%' },
@@ -668,11 +831,22 @@ Y6S.TEMPLATES = [
       ]
     },
     {
-      title: 'Standartlaştırma ve Yaygınlaştırma',
+      title: '3. Aşama Gözden Geçirme (Finans Sorumlusu)',
       fields: [
-        { name: 'standart', label: 'Standartlaştırma', type: 'textarea', width: 'full', rows: 3 },
-        { name: 'ogrenilen', label: 'Öğrenilen Dersler', type: 'textarea', width: 'full', rows: 2 },
-        ONAY
+        { name: 'gg3_not', label: 'Değerlendirme', type: 'textarea', width: 'full', rows: 2 },
+        { name: 'gg3_ad',  label: 'Ad Soyad', type: 'text', width: 'half' },
+        { name: 'gg3_tarih', label: 'İmza / Tarih', type: 'date', width: 'half' }
+      ]
+    },
+    {
+      title: 'Yayılım ve Standardizasyon',
+      fields: [
+        { name: 'standartlasti', label: 'Çözüm Standartlaştı mı?', type: 'select', width: 'half',
+          options: ['Evet', 'Devam ediyor', 'Hayır'] },
+        { name: 'yayildi', label: 'Çözüm diğer alanlara yayıldı mı?', type: 'select', width: 'half',
+          options: ['Evet', 'Devam ediyor', 'Hayır'] },
+        { name: 'standart', label: 'Standartlaştırma Adımları', type: 'textarea', width: 'full', rows: 3 },
+        { name: 'ogrenilen', label: 'Öğrenilen Dersler', type: 'textarea', width: 'full', rows: 2 }
       ]
     }
   ]
@@ -681,8 +855,10 @@ Y6S.TEMPLATES = [
 /* ---------------------------------------------------------------- 11 */
 {
   id: 'aksiyon-plani',
+  tags: 'aksiyon plani, 5n1k, 5w1h, termin, takip, is plani',
   name: 'Aksiyon Planı (5N1K)',
-  code: 'FR-AKS-01',
+  code: '',
+  resmi: false,
   icon: 'target',
   phase: 'I',
   orientation: 'landscape',
@@ -751,9 +927,9 @@ Y6S.FLOW_TYPES = [
 ];
 
 Y6S.VALUE_TYPES = [
-  { key: 'kd',    label: 'Katma Değerli',             color: '#1c7c54' },
-  { key: 'kdz',   label: 'Katma Değersiz (Zorunlu)',  color: '#b4690e' },
-  { key: 'israf', label: 'İsraf',                     color: '#b3261e' }
+  { key: 'kd',    label: 'Katma Değerli',             color: '#026A39' },
+  { key: 'kdz',   label: 'Katma Değersiz (Zorunlu)',  color: '#B8860B' },
+  { key: 'israf', label: 'İsraf',                     color: '#E7242A' }
 ];
 
 Y6S.M6 = M6;
